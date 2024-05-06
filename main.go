@@ -11,6 +11,6 @@ func main() {
 		http.ServeFile(w, r, "static/index.html")
 	})
 
-	fmt.Println("Servidor escuchando en el puerto :80, no veo niun problema")
+	fmt.Println("Servidor escuchando en el puerto :80, sin novedades")
 	http.ListenAndServe(":80", nil)
 }
