@@ -1,12 +1,49 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejemplo de servidor web en Go</title>
+    <title>Agenda de Contactos</title>
 </head>
 <body>
-    <h1>Hola, mundo!</h1>
-    <p>Este es un archivo HTML servido por un servidor web en Go.</p>
+    <h1>Agenda de Contactos</h1>
+    <h2>Nuevo Contacto</h2>
+    <form id="contactForm" action="/create" method="POST">
+        <label for="name">Nombre:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        <label for="phone">Teléfono:</label>
+        <input type="text" id="phone" name="phone" required><br><br>
+        <button type="submit">Guardar</button>
+    </form>
+    <hr>
+    <h2>Lista de Contactos</h2>
+    <ul id="contactList"></ul>
+
+    <script>
+        // Función para cargar la lista de contactos al cargar la página
+        window.onload = function () {
+            fetch('/read')
+                .then(response => response.text())
+                .then(data => {
+                    // Parsear los datos como líneas separadas
+                    const lines = data.split('\n');
+                    const contactList = document.getElementById('contactList');
+                    // Limpiar la lista antes de agregar nuevos elementos
+                    contactList.innerHTML = '';
+                    // Recorrer cada línea y agregar un elemento de lista para cada contacto
+                    lines.forEach(line => {
+                        if (line.trim() !== '') {
+                            const parts = line.split(', ');
+                            const id = parts[0].split(':')[1];
+                            const name = parts[1].split(':')[1];
+                            const phone = parts[2].split(':')[1];
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `ID: ${id}, Nombre: ${name}, Teléfono: ${phone}`;
+                            contactList.appendChild(listItem);
+                        }
+                    });
+                });
+        }
+    </script>
 </body>
 </html>
