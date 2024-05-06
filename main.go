@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"net/http"
 	"os"
@@ -17,7 +18,7 @@ func main() {
 
 	})
 	fmt.Println("Servidor escuchando en el puerto :80, sin novedades")
-	port := os.Getenv("PORT")
+	port := cmp.Or(os.Getenv("PORT"), "80")
 
 	http.ListenAndServe(":"+port, nil)
 }
