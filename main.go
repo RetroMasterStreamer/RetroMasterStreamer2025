@@ -7,6 +7,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Buscando index!!")
 		http.ServeFile(w, r, "static/index.html")
 	})
 
