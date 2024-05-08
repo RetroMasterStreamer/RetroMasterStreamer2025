@@ -14,7 +14,7 @@ import (
 // NewUserRepositoryMongo crea una nueva instancia de UserRepositoryMongo.
 func NewUserRepositoryMongo() *UserRepositoryMongo {
 	connectionString := os.Getenv("MONGODB_CONNECTION_STRING")
-
+	log.Println("Conection ", connectionString)
 	db := &DataBase{}
 	err := db.Connect(connectionString)
 	if err != nil {
