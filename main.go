@@ -1,24 +1,29 @@
 package main
 
 import (
+	"PortalCRG/internal"
+	"PortalCRG/internal/repository"
+	"PortalCRG/server"
 	"cmp"
 	"fmt"
-	"net/http"
 	"os"
 )
 
 func main() {
+	// Inicializar repositorios
+	userRepository := repository.NewUserRepositoryMongo()
 
-	fs := http.FileServer(http.Dir("./static/browser/"))
-	http.Handle("/", fs)
+	// Inicializar casos de uso
+	userService := internal.NewUserService(*userRepository)
 
-	http.HandleFunc("/saludo", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Buscando index!!")
-		fmt.Fprintf(w, "TODO OK!!")
+	// Inicializar servidor HTTP
+	httpServer := server.NewHTTPServer(userService)
 
-	})
-	fmt.Println("Servidor escuchando en el puerto :80, sin novedades")
 	port := cmp.Or(os.Getenv("PORT"), "80")
 
-	http.ListenAndServe(":"+port, nil)
+	// Iniciar el servidor HTTP
+	err := httpServer.Start(port)
+	if err != nil {
+		fmt.Printf("Error iniciando servidor HTTP: %v\n", err)
+	}
 }
