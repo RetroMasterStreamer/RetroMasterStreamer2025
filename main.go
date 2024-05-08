@@ -16,6 +16,8 @@ func main() {
 	// Inicializar casos de uso
 	userService := internal.NewUserService(*userRepository)
 
+	userRepository.Init()
+
 	// Inicializar servidor HTTP
 	httpServer := server.NewHTTPServer(userService)
 

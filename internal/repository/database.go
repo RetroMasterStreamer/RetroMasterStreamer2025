@@ -63,7 +63,7 @@ func (db *DataBase) CreateUser(newUser *entity.User) error {
 func (db *DataBase) Init() {
 
 	connectionString := os.Getenv("MONGODB_CONNECTION_STRING")
-
+	log.Println("Conection ", connectionString)
 	// Conectar a la base de datos
 	err := db.Connect(connectionString)
 	if err != nil {
