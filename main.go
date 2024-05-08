@@ -8,10 +8,10 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Buscando index!!")
-		http.ServeFile(w, r, "front/PortalRetroGames/dist/portal-retro-games/browser/index.html")
-	})
+
+	fs := http.FileServer(http.Dir("./static/browser/"))
+	http.Handle("/", fs)
+
 	http.HandleFunc("/saludo", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Buscando index!!")
 		fmt.Fprintf(w, "TODO OK!!")
