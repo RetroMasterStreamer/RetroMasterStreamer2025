@@ -28,3 +28,17 @@ func (s *UserServiceImpl) AuthenticateUser(alias, password string) (*entity.User
 	usuarioOnline, err := s.UserRepository.AuthenticateUser(alias, password)
 	return usuarioOnline, err
 }
+
+func (s *UserServiceImpl) SetStatusLogin(alias, sessionToken, hash string, online bool) (bool, error) {
+	usuarioOnline, err := s.UserRepository.SetUserOnline(alias, sessionToken, hash, online)
+	return usuarioOnline.Online, err
+}
+
+func (s *UserServiceImpl) GetStatusLogin(sessionToken, hash string) (*entity.UserOnline, error) {
+	usuarioOnline, err := s.UserRepository.GetUserOnline(sessionToken, hash)
+	return usuarioOnline, err
+}
+func (s *UserServiceImpl) GetUserByAlias(alias string) (*entity.User, error) {
+	usuarioOnline, err := s.UserRepository.GetUserByAlias(alias)
+	return usuarioOnline, err
+}
