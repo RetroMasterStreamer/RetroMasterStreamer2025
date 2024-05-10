@@ -22,7 +22,9 @@ func NewHTTPServer(userService internal.UserService) *HTTPServer {
 // Start inicia el servidor HTTP.
 func (s *HTTPServer) Start(port string) error {
 	http.HandleFunc("/saludo", s.handleGreet)
-	http.Handle("/", http.FileServer(http.Dir("./static/browser/")))
+
+	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./static/browser/"))))
+
 	http.HandleFunc("/portal/login", s.handleLogin)
 
 	fmt.Printf("Servidor escuchando en el puerto %s\n", port)
