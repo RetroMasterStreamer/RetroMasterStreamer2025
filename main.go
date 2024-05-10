@@ -21,7 +21,7 @@ func main() {
 	// Inicializar servidor HTTP
 	httpServer := server.NewHTTPServer(userService)
 
-	port := cmp.Or(os.Getenv("PORT"), "3030")
+	port := cmp.Or(os.Getenv("PORT"), "80")
 
 	// Iniciar el servidor HTTP
 	err := httpServer.Start(port)
