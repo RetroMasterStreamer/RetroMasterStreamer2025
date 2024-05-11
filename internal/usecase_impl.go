@@ -42,3 +42,28 @@ func (s *UserServiceImpl) GetUserByAlias(alias string) (*entity.User, error) {
 	usuarioOnline, err := s.UserRepository.GetUserByAlias(alias)
 	return usuarioOnline, err
 }
+
+func (s *UserServiceImpl) ChangePassword(alias, password string) (*entity.User, error) {
+	usuarioOnline, err := s.UserRepository.GetUserByAlias(alias)
+	if err != nil {
+		return nil, err
+	} else {
+		usuarioOnline.Password = password
+		s.UserRepository.SaveUser(usuarioOnline)
+		return usuarioOnline, nil
+	}
+}
+
+func (s *UserServiceImpl) SaveUser(user entity.User) (*entity.User, error) {
+	usuarioOnline, err := s.UserRepository.GetUserByAlias(user.Alias)
+	if err != nil {
+		return nil, err
+	} else {
+		usuarioOnline.Name = user.Name
+		usuarioOnline.RRSS = user.RRSS
+		usuarioOnline.ReferenceText = user.ReferenceText
+		usuarioOnline.AboutMe = user.AboutMe
+		s.UserRepository.SaveUser(usuarioOnline)
+		return usuarioOnline, nil
+	}
+}

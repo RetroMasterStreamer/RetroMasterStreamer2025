@@ -10,4 +10,6 @@ type UserService interface {
 	SetStatusLogin(alias, sessionToken, hash string, online bool) (bool, error)
 	GetStatusLogin(sessionToken, hash string) (*entity.UserOnline, error)
 	GetUserByAlias(alias string) (*entity.User, error)
+	ChangePassword(alias, password string) (*entity.User, error)
+	SaveUser(user entity.User) (*entity.User, error)
 }

@@ -37,7 +37,11 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/portal/login", s.handleLogin)
 
-	http.HandleFunc("/portal/logOut", s.handleLogout)
+	http.HandleFunc("/portal/logout", s.handleLogout)
+
+	http.HandleFunc("/portal/savePassword", s.savePassword)
+
+	http.HandleFunc("/portal/savePerfil", s.savePerfil)
 
 	http.HandleFunc("/portal/isOnline", s.isLogin)
 

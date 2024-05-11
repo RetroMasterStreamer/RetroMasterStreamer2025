@@ -110,3 +110,33 @@ func (r *UserRepositoryMongo) GetUserByAlias(alias string) (*entity.User, error)
 
 	return &user, nil
 }
+
+// SaveUser guarda el contenido completo de un registro en la colección "user".
+func (r *UserRepositoryMongo) SaveUser(user *entity.User) error {
+	collection := r.client.Database("dbName").Collection("user")
+
+	// Verificar si el usuario ya existe en la base de datos
+	existingUser, err := r.GetUserByAlias(user.Alias)
+	if err != nil {
+		return err
+	}
+
+	// Si el usuario existe, actualizamos su registro
+	if existingUser != nil {
+		filter := bson.M{"alias": user.Alias}
+		update := bson.M{"$set": user}
+
+		_, err := collection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Si el usuario no existe, insertamos un nuevo registro
+		_, err := collection.InsertOne(context.Background(), user)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
