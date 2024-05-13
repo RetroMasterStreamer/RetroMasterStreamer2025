@@ -65,6 +65,7 @@ func (s *UserServiceImpl) SaveUser(user entity.User) (*entity.User, error) {
 	} else {
 		usuarioOnline.Name = user.Name
 		usuarioOnline.RRSS = user.RRSS
+		usuarioOnline.AvatarYT = user.AvatarYT
 		usuarioOnline.ReferenceText = user.ReferenceText
 		usuarioOnline.AboutMe = user.AboutMe
 		s.UserRepository.SaveUser(usuarioOnline)

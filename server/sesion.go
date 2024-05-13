@@ -3,6 +3,8 @@ package server
 
 import (
 	"PortalCRG/internal/repository/entity"
+	"PortalCRG/internal/util"
+
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -351,6 +353,16 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 		usuario.AboutMe = newUser.AboutMe
 		usuario.Name = newUser.Name
 		usuario.RRSS = newUser.RRSS
+
+		youtubeURL := ""
+		for _, rrss := range newUser.RRSS {
+			if rrss.Type == "youtube" {
+				youtubeURL = rrss.URL
+			}
+		}
+
+		usuario.AvatarYT = util.GetAvatarByURL(youtubeURL)
+
 		usuario.ReferenceText = newUser.ReferenceText
 
 		s.UserService.SaveUser(*usuario)

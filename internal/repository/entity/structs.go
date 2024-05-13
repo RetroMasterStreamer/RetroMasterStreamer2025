@@ -3,6 +3,7 @@ package entity
 type User struct {
 	Name          string `bson:"name" json:"name"`
 	Alias         string `bson:"alias" json:"alias"`
+	AvatarYT      string `bson:"avatar_yt" json:"avatar_yt"`
 	Password      string `bson:"password,omitempty" json:"-"`
 	ReferenceText string `bson:"reference_text" json:"reference_text"`
 	UserRef       string `bson:"user_ref" json:"user_ref"`
