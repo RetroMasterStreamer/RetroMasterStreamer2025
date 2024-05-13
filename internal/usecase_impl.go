@@ -31,7 +31,11 @@ func (s *UserServiceImpl) AuthenticateUser(alias, password string) (*entity.User
 
 func (s *UserServiceImpl) SetStatusLogin(alias, sessionToken, hash string, online bool) (bool, error) {
 	usuarioOnline, err := s.UserRepository.SetUserOnline(alias, sessionToken, hash, online)
-	return usuarioOnline.Online, err
+	if online {
+		return usuarioOnline.Online, err
+	} else {
+		return false, err
+	}
 }
 
 func (s *UserServiceImpl) GetStatusLogin(sessionToken, hash string) (*entity.UserOnline, error) {

@@ -76,7 +76,7 @@ func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, on
 		return &user, nil
 	} else {
 		filter := bson.M{"alias": alias}
-		_, err := collection.DeleteOne(context.Background(), filter)
+		_, err := collection.DeleteMany(context.Background(), filter)
 		if err != nil {
 			return nil, err
 		}

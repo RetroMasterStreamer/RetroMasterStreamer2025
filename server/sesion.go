@@ -35,7 +35,7 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 		response.Status = "GAME OVER"
 	}
 
-	if userID == userOnline.Hash {
+	if userOnline != nil && userID == userOnline.Hash {
 		response.Code = 200
 		response.Status = "PLAYER"
 		response.User = *userOnline
@@ -140,18 +140,21 @@ func (s *HTTPServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	userOnline, err := s.UserService.GetStatusLogin(sessionToken, userID)
 	w.Header().Set("Content-Type", "application/json")
-	jsonResponse, err := s.logout(*userOnline, sessionToken, userID)
-	if err != nil {
-		http.Error(w, "Error al generar respuesta JSON"+err.Error(), http.StatusInternalServerError)
-	} else {
 
-		// Escribir la respuesta JSON en el cuerpo de la respuesta HTTP
-		w.Write(jsonResponse)
+	if userOnline != nil {
+
+		jsonResponse, err := s.logout(userOnline, sessionToken, userID)
+		if err != nil {
+			http.Error(w, "Error al generar respuesta JSON"+err.Error(), http.StatusInternalServerError)
+		} else {
+
+			// Escribir la respuesta JSON en el cuerpo de la respuesta HTTP
+			w.Write(jsonResponse)
+		}
 	}
-
 }
 
-func (s *HTTPServer) logout(userOnline entity.UserOnline, sessionToken string, userID string) ([]byte, error) {
+func (s *HTTPServer) logout(userOnline *entity.UserOnline, sessionToken string, userID string) ([]byte, error) {
 	userData, err := s.UserService.GetUserByAlias(userOnline.Alias)
 	if err == nil {
 		s.UserService.SetStatusLogin(userData.Alias, sessionToken, userID, false)

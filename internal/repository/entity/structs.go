@@ -7,12 +7,12 @@ type User struct {
 	ReferenceText string `bson:"reference_text" json:"reference_text"`
 	UserRef       string `bson:"user_ref" json:"user_ref"`
 	AboutMe       string `bson:"about_me" json:"about_me"`
-	RRSS          []RRSS `bson:"rrss" json:"rrss"`
+	RRSS          []RRSS `bson:"rrss" json:"RRSS"`
 }
 
 type RRSS struct {
 	Type string `bson:"type" json:"type"`
-	URL  string `bson:"url" json:"url"`
+	URL  string `bson:"url" json:"URL"`
 }
 
 type UserOnline struct {
@@ -25,5 +25,5 @@ type UserOnline struct {
 type PostNew struct {
 	Title string `bson:"title" json:"title"`
 	Text  string `bson:"text" json:"text"`
-	URL   string `bson:"url" json:"url"`
+	URL   string `bson:"url" json:"URL"`
 }
