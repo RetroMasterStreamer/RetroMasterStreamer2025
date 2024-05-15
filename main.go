@@ -12,9 +12,10 @@ import (
 func main() {
 	// Inicializar repositorios
 	userRepository := repository.NewUserRepositoryMongo()
+	portalRepository := repository.NewPortalRepositoryMongo()
 
 	// Inicializar casos de uso
-	userService := internal.NewUserService(*userRepository)
+	userService := internal.NewUserService(*userRepository, *portalRepository)
 
 	userRepository.Init()
 

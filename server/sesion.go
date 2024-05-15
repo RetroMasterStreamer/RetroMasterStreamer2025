@@ -4,6 +4,7 @@ package server
 import (
 	"PortalCRG/internal/repository/entity"
 	"PortalCRG/internal/util"
+	"strings"
 
 	"encoding/json"
 	"io/ioutil"
@@ -29,7 +30,7 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 
 	response := ResponseOnline{}
 
-	userOnline, error := s.UserService.GetStatusLogin(sessionToken, userID)
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
 
 	if !ok || error != nil {
 		// El token de sesión no coincide con ninguna sesión activa, redirigir al inicio de sesión
@@ -45,7 +46,7 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return
 	}
 
@@ -59,14 +60,14 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 
 	if r.Method != http.MethodPost {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		s.MakeErrorMessage(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Leer el cuerpo de la solicitud
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+		s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
 		return
 	}
 
@@ -75,14 +76,14 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 	// Decodificar el cuerpo JSON en la estructura de credenciales
 	var creds Credentials
 	if err := json.Unmarshal(body, &creds); err != nil {
-		http.Error(w, "Formato de datos incorrecto", http.StatusBadRequest)
+		s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
 		return
 	}
 
 	// Autenticar usuario con las credenciales proporcionadas
-	user, err := s.UserService.AuthenticateUser(creds.Alias, creds.Password)
+	user, err := s.PortalService.AuthenticateUser(creds.Alias, creds.Password)
 	if err != nil {
-		http.Error(w, "Error de autenticación", http.StatusUnauthorized)
+		s.MakeErrorMessage(w, "Error de autenticación", http.StatusUnauthorized)
 		return
 	}
 
@@ -95,7 +96,7 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return
 	}
 
@@ -112,7 +113,7 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 		// Otras configuraciones de cookie, como Path, MaxAge, etc.
 	})
 
-	s.UserService.SetStatusLogin(creds.Alias, sessionToken, hash, true)
+	s.PortalService.SetStatusLogin(creds.Alias, sessionToken, hash, true)
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -136,18 +137,18 @@ func (s *HTTPServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 	sessionToken := cookie.Value
 	userID, ok := s.sessions[sessionToken]
 	if !ok {
-		http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return
 	}
 
-	userOnline, err := s.UserService.GetStatusLogin(sessionToken, userID)
+	userOnline, err := s.PortalService.GetStatusLogin(sessionToken, userID)
 	w.Header().Set("Content-Type", "application/json")
 
 	if userOnline != nil {
 
 		jsonResponse, err := s.logout(userOnline, sessionToken, userID)
 		if err != nil {
-			http.Error(w, "Error al generar respuesta JSON"+err.Error(), http.StatusInternalServerError)
+			s.MakeErrorMessage(w, "Error al generar respuesta JSON"+err.Error(), http.StatusInternalServerError)
 		} else {
 
 			// Escribir la respuesta JSON en el cuerpo de la respuesta HTTP
@@ -157,9 +158,9 @@ func (s *HTTPServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) logout(userOnline *entity.UserOnline, sessionToken string, userID string) ([]byte, error) {
-	userData, err := s.UserService.GetUserByAlias(userOnline.Alias)
+	userData, err := s.PortalService.GetUserByAlias(userOnline.Alias)
 	if err == nil {
-		s.UserService.SetStatusLogin(userData.Alias, sessionToken, userID, false)
+		s.PortalService.SetStatusLogin(userData.Alias, sessionToken, userID, false)
 
 		response := entity.UserOnline{}
 		response.Alias = userData.Alias
@@ -189,7 +190,7 @@ func (s *HTTPServer) userData(w http.ResponseWriter, r *http.Request) {
 	sessionToken := cookie.Value
 	userID, ok := s.sessions[sessionToken]
 
-	userOnline, error := s.UserService.GetStatusLogin(sessionToken, userID)
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
 
 	userData := entity.User{}
 	jsonResponse, _ := json.Marshal(userData)
@@ -197,23 +198,23 @@ func (s *HTTPServer) userData(w http.ResponseWriter, r *http.Request) {
 	if !ok || error != nil {
 
 		if err != nil {
-			http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+			s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 			return
 		}
 
 	} else {
 
 		if userID == userOnline.Hash {
-			userData, err := s.UserService.GetUserByAlias(userOnline.Alias)
+			userData, err := s.PortalService.GetUserByAlias(userOnline.Alias)
 			if err == nil {
 				jsonResponse, err = json.Marshal(userData)
 				if err != nil {
-					http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+					s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 					return
 				}
 
 			} else {
-				http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+				s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 				return
 			}
 
@@ -229,7 +230,7 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 
 	if r.Method != http.MethodPost {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		s.MakeErrorMessage(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -246,7 +247,7 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 	response := ResponseOnline{}
 	response.Code = 500
 
-	userOnline, error := s.UserService.GetStatusLogin(sessionToken, userID)
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
 
 	if !ok || error != nil {
 		// El token de sesión no coincide con ninguna sesión activa, redirigir al inicio de sesión
@@ -259,7 +260,7 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 		// Leer el cuerpo de la solicitud
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+			s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
 			return
 		}
 
@@ -268,18 +269,18 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 		// Decodificar el cuerpo JSON en la estructura de credenciales
 		var passwordChange ChangePassword
 		if err := json.Unmarshal(body, &passwordChange); err != nil {
-			http.Error(w, "Formato de datos incorrecto", http.StatusBadRequest)
+			s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
 			return
 		}
 
-		usuario, err := s.UserService.GetUserByAlias(userOnline.Alias)
+		usuario, err := s.PortalService.GetUserByAlias(userOnline.Alias)
 		if err != nil {
-			http.Error(w, "Error no existe el usuario", http.StatusInternalServerError)
+			s.MakeErrorMessage(w, "Error no existe el usuario", http.StatusInternalServerError)
 			return
 		}
 
 		if passwordChange.NewPassword == passwordChange.ConfirmNewPassword && passwordChange.Password == usuario.Password {
-			s.UserService.ChangePassword(userOnline.Alias, passwordChange.NewPassword)
+			s.PortalService.ChangePassword(userOnline.Alias, passwordChange.NewPassword)
 			response.Code = 200
 		}
 
@@ -287,7 +288,7 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return
 	}
 
@@ -301,7 +302,7 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 
 	if r.Method != http.MethodPost {
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		s.MakeErrorMessage(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -318,7 +319,7 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 	response := ResponseOnline{}
 	response.Code = 500
 
-	userOnline, error := s.UserService.GetStatusLogin(sessionToken, userID)
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
 
 	if !ok || error != nil {
 		// El token de sesión no coincide con ninguna sesión activa, redirigir al inicio de sesión
@@ -331,7 +332,7 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 		// Leer el cuerpo de la solicitud
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+			s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
 			return
 		}
 
@@ -340,13 +341,19 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 		// Decodificar el cuerpo JSON en la estructura de credenciales
 		var newUser entity.User
 		if err := json.Unmarshal(body, &newUser); err != nil {
-			http.Error(w, "Formato de datos incorrecto", http.StatusBadRequest)
+			s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
 			return
 		}
 
-		usuario, err := s.UserService.GetUserByAlias(userOnline.Alias)
+		usuario, err := s.PortalService.GetUserByAlias(userOnline.Alias)
 		if err != nil {
-			http.Error(w, "Error no existe el usuario", http.StatusInternalServerError)
+			s.MakeErrorMessage(w, "Error no existe el usuario", http.StatusInternalServerError)
+			return
+		}
+
+		usuarioRef, _ := s.PortalService.GetUserByTextRefer(newUser.ReferenceText)
+		if usuarioRef != nil && usuarioRef.Alias != newUser.Alias {
+			s.MakeErrorMessage(w, "Frase ya esta siendo ocupada", http.StatusInternalServerError)
 			return
 		}
 
@@ -354,25 +361,23 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 		usuario.Name = newUser.Name
 		usuario.RRSS = newUser.RRSS
 
-		youtubeURL := ""
 		for _, rrss := range newUser.RRSS {
-			if rrss.Type == "youtube" {
-				youtubeURL = rrss.URL
+			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/@") {
+				usuario.AvatarYT = util.GetAvatarByURL(rrss.URL)
+				break
 			}
 		}
 
-		usuario.AvatarYT = util.GetAvatarByURL(youtubeURL)
-
 		usuario.ReferenceText = newUser.ReferenceText
 
-		s.UserService.SaveUser(*usuario)
+		s.PortalService.SaveUser(*usuario)
 		response.Code = 200
 
 	}
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return
 	}
 

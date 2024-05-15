@@ -12,8 +12,8 @@ import (
 
 // HTTPServer representa el servidor HTTP.
 type HTTPServer struct {
-	UserService internal.UserService
-	sessions    map[string]string
+	PortalService internal.PortalRetroGamerService
+	sessions      map[string]string
 }
 
 func (s *HTTPServer) hashAlias(alias string) string {
@@ -23,9 +23,9 @@ func (s *HTTPServer) hashAlias(alias string) string {
 }
 
 // NewHTTPServer crea una nueva instancia de HTTPServer.
-func NewHTTPServer(userService internal.UserService) *HTTPServer {
+func NewHTTPServer(portalRetroGamerService internal.PortalRetroGamerService) *HTTPServer {
 	return &HTTPServer{
-		UserService: userService,
+		PortalService: portalRetroGamerService,
 	}
 }
 
@@ -47,11 +47,27 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/portal/userData", s.userData)
 
+	http.HandleFunc("/public/team", s.teams)
+
+	http.HandleFunc("/public/checkCode", s.checkCode)
+
+	http.HandleFunc("/public/checkAlias", s.checkAlias)
+
+	http.HandleFunc("/public/createUser", s.createUser)
+
 	fmt.Printf("Servidor escuchando en el puerto %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
 }
 
 func (s *HTTPServer) handleGreet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Buscando index!!")
-	fmt.Fprintf(w, s.UserService.Greet())
+	fmt.Fprintf(w, s.PortalService.Greet())
+}
+
+func (s *HTTPServer) MakeErrorMessage(w http.ResponseWriter, message string, code int) {
+	error := ResponseMessage{}
+	error.Code = code
+	error.Message = message
+
+	http.Error(w, message, http.StatusInternalServerError)
 }

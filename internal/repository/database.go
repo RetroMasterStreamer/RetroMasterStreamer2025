@@ -39,7 +39,7 @@ func (db *DataBase) FindUser(alias string) (*entity.User, error) {
 	collection := db.client.Database("dbName").Collection("user")
 
 	var user entity.User
-	err := collection.FindOne(context.Background(), bson.M{"alias": alias}).Decode(&user)
+	err := collection.FindOne(context.Background(), bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}

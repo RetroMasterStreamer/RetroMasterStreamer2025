@@ -37,7 +37,7 @@ func (r *UserRepositoryMongo) AuthenticateUser(alias, password string) (*entity.
 	collection := r.client.Database("dbName").Collection("user")
 
 	var user entity.User
-	err := collection.FindOne(context.Background(), bson.M{"alias": alias, "password": password}).Decode(&user)
+	err := collection.FindOne(context.Background(), bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}, "password": password}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, on
 
 		return &user, nil
 	} else {
-		filter := bson.M{"alias": alias}
+		filter := bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}
 		_, err := collection.DeleteMany(context.Background(), filter)
 		if err != nil {
 			return nil, err
@@ -102,8 +102,26 @@ func (r *UserRepositoryMongo) GetUserOnline(sessionToken, hash string) (*entity.
 func (r *UserRepositoryMongo) GetUserByAlias(alias string) (*entity.User, error) {
 	collection := r.client.Database("dbName").Collection("user")
 
+	// Usar una expresión regular para búsqueda insensible a mayúsculas y minúsculas
+	filter := bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}
+
 	var user entity.User
-	err := collection.FindOne(context.Background(), bson.M{"alias": alias}).Decode(&user)
+	err := collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepositoryMongo) GetUserByTextRefer(text string) (*entity.User, error) {
+	collection := r.client.Database("dbName").Collection("user")
+
+	// Usar una expresión regular para búsqueda insensible a mayúsculas y minúsculas
+	filter := bson.M{"reference_text": bson.M{"$regex": text, "$options": "i"}}
+
+	var user entity.User
+	err := collection.FindOne(context.Background(), filter).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -116,14 +134,11 @@ func (r *UserRepositoryMongo) SaveUser(user *entity.User) error {
 	collection := r.client.Database("dbName").Collection("user")
 
 	// Verificar si el usuario ya existe en la base de datos
-	existingUser, err := r.GetUserByAlias(user.Alias)
-	if err != nil {
-		return err
-	}
+	existingUser, _ := r.GetUserByAlias(user.Alias)
 
 	// Si el usuario existe, actualizamos su registro
 	if existingUser != nil {
-		filter := bson.M{"alias": user.Alias}
+		filter := bson.M{"alias": bson.M{"$regex": user.Alias, "$options": "i"}}
 		update := bson.M{"$set": user}
 
 		_, err := collection.UpdateOne(context.Background(), filter, update)
@@ -139,4 +154,28 @@ func (r *UserRepositoryMongo) SaveUser(user *entity.User) error {
 	}
 
 	return nil
+}
+
+func (r *UserRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
+	collection := r.client.Database("dbName").Collection("user")
+
+	cursor, err := collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var users []*entity.User
+	for cursor.Next(context.Background()) {
+		var user entity.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
