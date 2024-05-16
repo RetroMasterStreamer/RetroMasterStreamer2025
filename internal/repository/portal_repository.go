@@ -33,7 +33,7 @@ type PortalRepositoryMongo struct {
 
 // Otros métodos de UserRepositoryMongo...
 func (r *PortalRepositoryMongo) GetUserByAlias(userRef string) (*entity.User, error) {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	var user entity.User
 	err := collection.FindOne(context.Background(), bson.M{"reference_text": userRef}).Decode(&user)
@@ -45,7 +45,7 @@ func (r *PortalRepositoryMongo) GetUserByAlias(userRef string) (*entity.User, er
 }
 
 func (r *PortalRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	cursor, err := collection.Find(context.Background(), bson.M{})
 	if err != nil {

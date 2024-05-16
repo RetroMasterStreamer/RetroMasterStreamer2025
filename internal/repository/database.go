@@ -19,24 +19,41 @@ type DataBase struct {
 
 // Connect establece una conexión con la base de datos MongoDB utilizando la cadena de conexión proporcionada.
 func (db *DataBase) Connect(connectionString string) error {
-	clientOptions := options.Client().ApplyURI(connectionString)
-	client, err := mongo.Connect(context.Background(), clientOptions)
+	/*
+		clientOptions := options.Client().ApplyURI(connectionString)
+		client, err := mongo.Connect(context.Background(), clientOptions)
+		if err != nil {
+			return err
+		}
+
+		err = client.Ping(context.Background(), nil)
+		if err != nil {
+			return err
+		}
+
+		db.client = client
+		return nil
+	*/
+
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI(connectionString).SetServerAPIOptions(serverAPI)
+	// Create a new client and connect to the server
+	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
-	err = client.Ping(context.Background(), nil)
-	if err != nil {
+	// Send a ping to confirm a successful connection
+	if err := client.Database("portalRG").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
 		return err
 	}
-
 	db.client = client
 	return nil
 }
 
 // FindUser busca un usuario por su nombre en la colección "user" y devuelve un puntero a la estructura User.
 func (db *DataBase) FindUser(alias string) (*entity.User, error) {
-	collection := db.client.Database("dbName").Collection("user")
+	collection := db.client.Database("portalRG").Collection("user")
 
 	var user entity.User
 	err := collection.FindOne(context.Background(), bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}).Decode(&user)
@@ -49,7 +66,7 @@ func (db *DataBase) FindUser(alias string) (*entity.User, error) {
 
 // CreateUser crea un nuevo usuario en la colección "user".
 func (db *DataBase) CreateUser(newUser *entity.User) error {
-	collection := db.client.Database("dbName").Collection("user")
+	collection := db.client.Database("portalRG").Collection("user")
 
 	_, err := collection.InsertOne(context.Background(), newUser)
 	if err != nil {
@@ -72,26 +89,28 @@ func (db *DataBase) Init() {
 
 	// Ejemplo de uso: encontrar un usuario
 	user, err := db.FindUser("admin")
-	if err == nil {
-		if user == nil {
-			newUser := &entity.User{
-				Name:          "Administrador",
-				Alias:         "admin",
-				Password:      "iddqdidkfaidclip",
-				ReferenceText: "Iddqd",
-				UserRef:       "Administrador",
-			}
-			err = db.CreateUser(newUser)
-			if err != nil {
-				log.Fatal("Error creando usuario:", err)
-			} else {
-				log.Println("Nace el Admin")
-			}
+	//if err == nil {
+	if user == nil {
+		newUser := &entity.User{
+			Name:          "Administrador",
+			Alias:         "admin",
+			Password:      "iddqd",
+			ReferenceText: "Iddqd",
+			UserRef:       "Administrador",
+		}
+		err = db.CreateUser(newUser)
+		if err != nil {
+			log.Fatal("Error creando usuario:", err)
 		} else {
-			log.Println("Admin ya existe")
+			log.Println("Nace el Admin")
 		}
 	} else {
-		log.Fatal("Error :", err.Error())
+		log.Println("Admin ya existe")
 	}
+	/*
+		} else {
+			log.Fatal("Error :", err.Error())
+		}
+	*/
 
 }

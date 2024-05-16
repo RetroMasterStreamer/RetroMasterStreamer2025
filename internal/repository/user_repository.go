@@ -34,7 +34,7 @@ type UserRepositoryMongo struct {
 
 // AuthenticateUser autentica a un usuario utilizando su alias y contraseña.
 func (r *UserRepositoryMongo) AuthenticateUser(alias, password string) (*entity.User, error) {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	var user entity.User
 	err := collection.FindOne(context.Background(), bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}, "password": password}).Decode(&user)
@@ -47,7 +47,7 @@ func (r *UserRepositoryMongo) AuthenticateUser(alias, password string) (*entity.
 
 // AuthenticateUser autentica a un usuario utilizando su alias y contraseña.
 func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, online bool) (*entity.UserOnline, error) {
-	collection := r.client.Database("dbName").Collection("userOnline")
+	collection := r.client.Database("portalRG").Collection("userOnline")
 
 	// Definir el filtro para encontrar el usuario
 	filter := bson.M{"alias": alias, "sessionToken": sessionToken, "hash": hash}
@@ -87,7 +87,7 @@ func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, on
 }
 
 func (r *UserRepositoryMongo) GetUserOnline(sessionToken, hash string) (*entity.UserOnline, error) {
-	collection := r.client.Database("dbName").Collection("userOnline")
+	collection := r.client.Database("portalRG").Collection("userOnline")
 
 	var user entity.UserOnline
 	err := collection.FindOne(context.Background(), bson.M{"sessionToken": sessionToken, "hash": hash}).Decode(&user)
@@ -100,7 +100,7 @@ func (r *UserRepositoryMongo) GetUserOnline(sessionToken, hash string) (*entity.
 
 // Otros métodos de UserRepositoryMongo...
 func (r *UserRepositoryMongo) GetUserByAlias(alias string) (*entity.User, error) {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	// Usar una expresión regular para búsqueda insensible a mayúsculas y minúsculas
 	filter := bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}
@@ -115,7 +115,7 @@ func (r *UserRepositoryMongo) GetUserByAlias(alias string) (*entity.User, error)
 }
 
 func (r *UserRepositoryMongo) GetUserByTextRefer(text string) (*entity.User, error) {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	// Usar una expresión regular para búsqueda insensible a mayúsculas y minúsculas
 	filter := bson.M{"reference_text": bson.M{"$regex": text, "$options": "i"}}
@@ -131,7 +131,7 @@ func (r *UserRepositoryMongo) GetUserByTextRefer(text string) (*entity.User, err
 
 // SaveUser guarda el contenido completo de un registro en la colección "user".
 func (r *UserRepositoryMongo) SaveUser(user *entity.User) error {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	// Verificar si el usuario ya existe en la base de datos
 	existingUser, _ := r.GetUserByAlias(user.Alias)
@@ -157,7 +157,7 @@ func (r *UserRepositoryMongo) SaveUser(user *entity.User) error {
 }
 
 func (r *UserRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
-	collection := r.client.Database("dbName").Collection("user")
+	collection := r.client.Database("portalRG").Collection("user")
 
 	cursor, err := collection.Find(context.Background(), bson.M{})
 	if err != nil {
