@@ -179,3 +179,59 @@ func (r *UserRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
 
 	return users, nil
 }
+
+func (r *UserRepositoryMongo) SaveTips(tip *entity.PostNew) error {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	// Verificar si el usuario ya existe en la base de datos
+	existingTip, _ := r.GetTipsByID(tip.ID)
+
+	// Si el usuario existe, actualizamos su registro
+	if existingTip != nil {
+		filter := bson.M{"id": bson.M{"$regex": tip.ID, "$options": "i"}}
+		update := bson.M{"$set": tip}
+
+		_, err := collection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Si el usuario no existe, insertamos un nuevo registro
+		_, err := collection.InsertOne(context.Background(), tip)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *UserRepositoryMongo) GetTipsByAuthor(alias string) (*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	// Usar una expresión regular para búsqueda insensible a mayúsculas y minúsculas
+	filter := bson.M{"author": bson.M{"$regex": alias, "$options": "i"}}
+
+	var tip entity.PostNew
+	err := collection.FindOne(context.Background(), filter).Decode(&tip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tip, nil
+}
+
+func (r *UserRepositoryMongo) GetTipsByID(id string) (*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	// Usar una expresión regular para búsqueda insensible a mayúsculas y minúsculas
+	filter := bson.M{"id": bson.M{"$regex": id, "$options": "i"}}
+
+	var tip entity.PostNew
+	err := collection.FindOne(context.Background(), filter).Decode(&tip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tip, nil
+}

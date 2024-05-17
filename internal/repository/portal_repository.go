@@ -67,3 +67,27 @@ func (r *PortalRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
 
 	return users, nil
 }
+
+func (r *PortalRepositoryMongo) GetAllTips() ([]*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	cursor, err := collection.Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var tips []*entity.PostNew
+	for cursor.Next(context.Background()) {
+		var tip entity.PostNew
+		if err := cursor.Decode(&tip); err != nil {
+			return nil, err
+		}
+		tips = append(tips, &tip)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return tips, nil
+}

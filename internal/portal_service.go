@@ -16,4 +16,7 @@ type PortalRetroGamerService interface {
 	CreateUser(user *entity.User) error
 	GetAllUsers() ([]*entity.User, error)
 	GetUserByRefer(refer string) (*entity.User, error)
+
+	CreateTips(tips *entity.PostNew) error
+	GetAllTips() ([]*entity.PostNew, error)
 }

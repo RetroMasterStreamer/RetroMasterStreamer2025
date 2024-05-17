@@ -42,6 +42,19 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 		response.Code = 200
 		response.Status = "PLAYER"
 		response.User = *userOnline
+
+		s.sessions = make(map[string]string)
+		// Almacenar el token de sesión en el mapa de sesiones
+		hash := s.hashAlias(response.User.Alias)
+		s.sessions[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
+
+		// Establecer una cookie con el token de sesión
+		http.SetCookie(w, &http.Cookie{
+			Name:  "session_token",
+			Value: sessionToken,
+
+			// Otras configuraciones de cookie, como Path, MaxAge, etc.
+		})
 	}
 
 	jsonResponse, err := json.Marshal(response)
@@ -107,9 +120,8 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Establecer una cookie con el token de sesión
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_token",
-		Value:    sessionToken,
-		HttpOnly: true,
+		Name:  "session_token",
+		Value: sessionToken,
 		// Otras configuraciones de cookie, como Path, MaxAge, etc.
 	})
 

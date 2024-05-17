@@ -149,3 +149,51 @@ func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+		return
+	}
+
+	// Definir estructura para datos de credenciales
+
+	// Decodificar el cuerpo JSON en la estructura de credenciales
+	var tips entity.PostNew
+	if err := json.Unmarshal(body, &tips); err != nil {
+		s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
+		return
+	}
+
+	s.PortalService.CreateTips(&tips)
+
+	return
+
+}
+
+func (s *HTTPServer) tips(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+
+	teams, err := s.PortalService.GetAllTips()
+	if err != nil {
+		s.MakeErrorMessage(w, "Error al obtener los usuarios", http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse, err := json.Marshal(teams)
+	if err != nil {
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(jsonResponse)
+
+}

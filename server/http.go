@@ -55,6 +55,12 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/public/createUser", s.createUser)
 
+	http.HandleFunc("/public/saveTips", s.saveTips)
+
+	http.HandleFunc("/public/tips", s.tips)
+
+	http.HandleFunc("/public/deleteTips", s.createUser)
+
 	fmt.Printf("Servidor escuchando en el puerto %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
 }

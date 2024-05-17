@@ -90,9 +90,22 @@ func (s *PortalRetroGamerImpl) GetAllUsers() ([]*entity.User, error) {
 
 	return users, err
 }
+
 func (s *PortalRetroGamerImpl) GetUserByRefer(refer string) (*entity.User, error) {
 
 	user, err := s.PortalRepository.GetUserByAlias(refer)
 
 	return user, err
+}
+
+func (s *PortalRetroGamerImpl) GetAllTips() ([]*entity.PostNew, error) {
+
+	users, err := s.PortalRepository.GetAllTips()
+
+	return users, err
+}
+
+func (s *PortalRetroGamerImpl) CreateTips(tip *entity.PostNew) error {
+	error := s.UserRepository.SaveTips(tip)
+	return error
 }
