@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/gorilla/mux"
 	// Para generar UUIDs únicos
 )
 
@@ -189,6 +191,26 @@ func (s *HTTPServer) tips(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse, err := json.Marshal(teams)
+	if err != nil {
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(jsonResponse)
+
+}
+
+func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
+		return
+	}
+
+	tip := s.PortalService.GetTipByID(id)
+
+	jsonResponse, err := json.Marshal(tip)
 	if err != nil {
 		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return

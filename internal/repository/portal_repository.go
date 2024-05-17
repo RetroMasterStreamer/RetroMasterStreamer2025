@@ -91,3 +91,15 @@ func (r *PortalRepositoryMongo) GetAllTips() ([]*entity.PostNew, error) {
 
 	return tips, nil
 }
+
+func (r *PortalRepositoryMongo) GetTipByID(id string) (*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	var tip entity.PostNew
+	err := collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&tip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tip, nil
+}

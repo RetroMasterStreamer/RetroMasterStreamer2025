@@ -109,3 +109,9 @@ func (s *PortalRetroGamerImpl) CreateTips(tip *entity.PostNew) error {
 	error := s.UserRepository.SaveTips(tip)
 	return error
 }
+
+func (s *PortalRetroGamerImpl) GetTipByID(id string) *entity.PostNew {
+
+	users, _ := s.PortalRepository.GetTipByID(id)
+	return users
+}

@@ -5,6 +5,7 @@ go 1.22.2
 require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/mux v1.8.1
 	go.mongodb.org/mongo-driver v1.15.0
 )
 
