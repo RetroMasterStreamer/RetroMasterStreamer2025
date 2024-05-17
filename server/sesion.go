@@ -42,19 +42,20 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 		response.Code = 200
 		response.Status = "PLAYER"
 		response.User = *userOnline
+		/*
+			s.sessions = make(map[string]string)
+			// Almacenar el token de sesión en el mapa de sesiones
+			hash := s.hashAlias(response.User.Alias)
+			s.sessions[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
 
-		s.sessions = make(map[string]string)
-		// Almacenar el token de sesión en el mapa de sesiones
-		hash := s.hashAlias(response.User.Alias)
-		s.sessions[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
+			// Establecer una cookie con el token de sesión
+			http.SetCookie(w, &http.Cookie{
+				Name:  "session_token",
+				Value: sessionToken,
 
-		// Establecer una cookie con el token de sesión
-		http.SetCookie(w, &http.Cookie{
-			Name:  "session_token",
-			Value: sessionToken,
-
-			// Otras configuraciones de cookie, como Path, MaxAge, etc.
-		})
+				// Otras configuraciones de cookie, como Path, MaxAge, etc.
+			})
+		*/
 	}
 
 	jsonResponse, err := json.Marshal(response)
@@ -374,7 +375,7 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 		usuario.RRSS = newUser.RRSS
 
 		for _, rrss := range newUser.RRSS {
-			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/@") {
+			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/") {
 				usuario.AvatarYT = util.GetAvatarByURL(rrss.URL)
 				break
 			}

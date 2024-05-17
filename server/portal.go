@@ -65,6 +65,11 @@ func (s *HTTPServer) checkCode(w http.ResponseWriter, r *http.Request) {
 
 	iddqd := code.Password
 
+	if iddqd == "" {
+		s.MakeErrorMessage(w, "Que intentas hacer?", http.StatusInternalServerError)
+		return
+	}
+
 	userRef, err := s.PortalService.GetUserByRefer(iddqd)
 	if err != nil {
 		s.MakeErrorMessage(w, "Error al obtener los usuarios", http.StatusInternalServerError)
