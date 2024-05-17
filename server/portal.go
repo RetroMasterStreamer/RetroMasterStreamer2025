@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/gorilla/mux"
 	// Para generar UUIDs únicos
 )
 
@@ -201,9 +199,8 @@ func (s *HTTPServer) tips(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
+	id := r.URL.Query().Get("id")
+	if id == "" {
 		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
 		return
 	}
