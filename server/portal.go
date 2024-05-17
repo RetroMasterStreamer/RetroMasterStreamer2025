@@ -137,6 +137,7 @@ func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
 		newUser := entity.User{}
 		newUser.Alias = createUserRequest.NewUser.Alias
 		newUser.Password = createUserRequest.NewUser.Password
+		newUser.UserRef = createUserRequest.RefUser.Alias
 		errCreate := s.PortalService.CreateUser(&newUser)
 		if errCreate != nil {
 			s.MakeErrorMessage(w, "Error al crear "+errCreate.Error(), http.StatusInternalServerError)
