@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	// Para generar UUIDs únicos
 )
 
@@ -182,6 +183,33 @@ func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 0 {
+		page = 0
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	skip := int64(page * limit)
+
+	tips, err := s.PortalService.GetTipsWithPagination(skip, int64(limit))
+	if err != nil {
+		http.Error(w, "Error fetching tips", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tips); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
 func (s *HTTPServer) tips(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -221,4 +249,33 @@ func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jsonResponse)
 
+}
+
+func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	search := r.URL.Query().Get("search")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 0 {
+		page = 0
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	skip := int64(page * limit)
+
+	tips, err := s.PortalService.GetTipsWithSearch(search, skip, int64(limit))
+	if err != nil {
+		s.MakeErrorMessage(w, "No existen resultados :(", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tips); err != nil {
+		s.MakeErrorMessage(w, "No pude crear una respuesta", http.StatusInternalServerError)
+	}
 }

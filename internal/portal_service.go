@@ -19,5 +19,7 @@ type PortalRetroGamerService interface {
 
 	CreateTips(tips *entity.PostNew) error
 	GetTipByID(id string) *entity.PostNew
+	GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error)
+	GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error)
 	GetAllTips() ([]*entity.PostNew, error)
 }

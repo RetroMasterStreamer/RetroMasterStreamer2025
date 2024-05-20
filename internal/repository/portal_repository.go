@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"PortalCRG/internal/repository/entity"
 )
@@ -68,6 +69,35 @@ func (r *PortalRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
 	return users, nil
 }
 
+// GetTipsWithPagination obtiene los tips con paginación
+func (r *PortalRepositoryMongo) GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	findOptions := options.Find()
+	findOptions.SetSkip(skip)
+	findOptions.SetLimit(limit)
+
+	cursor, err := collection.Find(context.Background(), bson.M{}, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var tips []*entity.PostNew
+	for cursor.Next(context.Background()) {
+		var tip entity.PostNew
+		if err := cursor.Decode(&tip); err != nil {
+			return nil, err
+		}
+		tips = append(tips, &tip)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return tips, nil
+}
+
 func (r *PortalRepositoryMongo) GetAllTips() ([]*entity.PostNew, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
 
@@ -102,4 +132,40 @@ func (r *PortalRepositoryMongo) GetTipByID(id string) (*entity.PostNew, error) {
 	}
 
 	return &tip, nil
+}
+
+// GetTipsWithSearch obtiene los tips con paginación y búsqueda
+func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	filter := bson.M{
+		"$or": []bson.M{
+			{"title": bson.M{"$regex": search, "$options": "i"}},
+			{"content": bson.M{"$regex": search, "$options": "i"}},
+		},
+	}
+
+	findOptions := options.Find()
+	findOptions.SetSkip(skip)
+	findOptions.SetLimit(limit)
+
+	cursor, err := collection.Find(context.Background(), filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var tips []*entity.PostNew
+	for cursor.Next(context.Background()) {
+		var tip entity.PostNew
+		if err := cursor.Decode(&tip); err != nil {
+			return nil, err
+		}
+		tips = append(tips, &tip)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return tips, nil
 }

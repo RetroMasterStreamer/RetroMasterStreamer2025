@@ -115,3 +115,11 @@ func (s *PortalRetroGamerImpl) GetTipByID(id string) *entity.PostNew {
 	users, _ := s.PortalRepository.GetTipByID(id)
 	return users
 }
+
+func (s *PortalRetroGamerImpl) GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error) {
+	return s.PortalRepository.GetTipsWithPagination(skip, limit)
+}
+
+func (s *PortalRetroGamerImpl) GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error) {
+	return s.PortalRepository.GetTipsWithSearch(search, skip, limit)
+}
