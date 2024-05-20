@@ -47,6 +47,8 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/portal/userData", s.userData)
 
+	http.HandleFunc("/portal/deleteTips", s.deleteTip)
+
 	http.HandleFunc("/public/team", s.teams)
 
 	http.HandleFunc("/public/checkCode", s.checkCode)
@@ -58,8 +60,6 @@ func (s *HTTPServer) Start(port string) error {
 	http.HandleFunc("/public/saveTips", s.saveTips)
 
 	http.HandleFunc("/public/tips", s.tips)
-
-	http.HandleFunc("/public/deleteTips", s.createUser)
 
 	http.HandleFunc("/public/new", s.getTips)
 

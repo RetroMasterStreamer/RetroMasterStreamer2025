@@ -22,4 +22,5 @@ type PortalRetroGamerService interface {
 	GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error)
 	GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error)
 	GetAllTips() ([]*entity.PostNew, error)
+	DeleteTip(alias, id string) error
 }

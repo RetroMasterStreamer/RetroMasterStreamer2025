@@ -112,8 +112,8 @@ func (s *PortalRetroGamerImpl) CreateTips(tip *entity.PostNew) error {
 
 func (s *PortalRetroGamerImpl) GetTipByID(id string) *entity.PostNew {
 
-	users, _ := s.PortalRepository.GetTipByID(id)
-	return users
+	tips, _ := s.PortalRepository.GetTipByID(id)
+	return tips
 }
 
 func (s *PortalRetroGamerImpl) GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error) {
@@ -122,4 +122,8 @@ func (s *PortalRetroGamerImpl) GetTipsWithPagination(skip, limit int64) ([]*enti
 
 func (s *PortalRetroGamerImpl) GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error) {
 	return s.PortalRepository.GetTipsWithSearch(search, skip, limit)
+}
+
+func (s *PortalRetroGamerImpl) DeleteTip(id, alias string) error {
+	return s.PortalRepository.DeleteTipByIDandAuthor(id, alias)
 }

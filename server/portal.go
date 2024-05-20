@@ -279,3 +279,55 @@ func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
 		s.MakeErrorMessage(w, "No pude crear una respuesta", http.StatusInternalServerError)
 	}
 }
+
+func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+	cookie, err := r.Cookie("portal_ident")
+	if err != nil {
+		// El token de sesión no está presente o es inválido, redirigir al inicio de sesión
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Verificar el token de sesión en el mapa de sesiones
+	sessionToken := cookie.Value
+	userID, ok := s.sessions[sessionToken]
+
+	response := ResponseOnline{}
+
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
+
+	if !ok || error != nil {
+		// El token de sesión no coincide con ninguna sesión activa, redirigir al inicio de sesión
+		response.Code = 401
+		response.Status = "GAME OVER"
+		s.MakeErrorMessage(w, "Intente logearse otra vez", http.StatusMethodNotAllowed)
+	}
+
+	if userOnline != nil && userID == userOnline.Hash {
+
+		if r.Method != http.MethodDelete {
+			s.MakeErrorMessage(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req struct {
+			ID string `json:"id"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			s.MakeErrorMessage(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if err := s.PortalService.DeleteTip(req.ID, userOnline.Alias); err != nil {
+			s.MakeErrorMessage(w, "Failed to delete tip", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}

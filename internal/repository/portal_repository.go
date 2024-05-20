@@ -76,6 +76,7 @@ func (r *PortalRepositoryMongo) GetTipsWithPagination(skip, limit int64) ([]*ent
 	findOptions := options.Find()
 	findOptions.SetSkip(skip)
 	findOptions.SetLimit(limit)
+	findOptions.SetSort(bson.D{{"date", -1}})
 
 	cursor, err := collection.Find(context.Background(), bson.M{}, findOptions)
 	if err != nil {
@@ -134,6 +135,18 @@ func (r *PortalRepositoryMongo) GetTipByID(id string) (*entity.PostNew, error) {
 	return &tip, nil
 }
 
+func (r *PortalRepositoryMongo) GetTipByAuthor(author string) (*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	var tip entity.PostNew
+	err := collection.FindOne(context.Background(), bson.M{"author": author}).Decode(&tip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tip, nil
+}
+
 // GetTipsWithSearch obtiene los tips con paginación y búsqueda
 func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
@@ -148,6 +161,7 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 	findOptions := options.Find()
 	findOptions.SetSkip(skip)
 	findOptions.SetLimit(limit)
+	findOptions.SetSort(bson.D{{"date", -1}})
 
 	cursor, err := collection.Find(context.Background(), filter, findOptions)
 	if err != nil {
@@ -168,4 +182,12 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 	}
 
 	return tips, nil
+}
+
+func (r *PortalRepositoryMongo) DeleteTipByIDandAuthor(id, alias string) error {
+	collection := r.client.Database("portalRG").Collection("tips")
+	filter := bson.M{"id": id, "author": bson.M{"$regex": alias, "$options": "i"}}
+	q, err := collection.DeleteOne(context.Background(), filter)
+	log.Println(q.DeletedCount, " Eliminaciones!")
+	return err
 }

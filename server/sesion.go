@@ -4,6 +4,7 @@ package server
 import (
 	"PortalCRG/internal/repository/entity"
 	"PortalCRG/internal/util"
+	"log"
 	"strings"
 
 	"encoding/json"
@@ -17,7 +18,7 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-	cookie, err := r.Cookie("session_token")
+	cookie, err := r.Cookie("portal_ident")
 	if err != nil {
 		// El token de sesión no está presente o es inválido, redirigir al inicio de sesión
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -42,20 +43,6 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 		response.Code = 200
 		response.Status = "PLAYER"
 		response.User = *userOnline
-		/*
-			s.sessions = make(map[string]string)
-			// Almacenar el token de sesión en el mapa de sesiones
-			hash := s.hashAlias(response.User.Alias)
-			s.sessions[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
-
-			// Establecer una cookie con el token de sesión
-			http.SetCookie(w, &http.Cookie{
-				Name:  "session_token",
-				Value: sessionToken,
-
-				// Otras configuraciones de cookie, como Path, MaxAge, etc.
-			})
-		*/
 	}
 
 	jsonResponse, err := json.Marshal(response)
@@ -119,10 +106,13 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 	hash := s.hashAlias(response.User.Alias)
 	s.sessions[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
 
+	log.Println("Sesion TOKEN :" + sessionToken + "| User :" + creds.Alias + "| Hash :" + hash)
+
 	// Establecer una cookie con el token de sesión
 	http.SetCookie(w, &http.Cookie{
-		Name:  "session_token",
-		Value: sessionToken,
+		Name:   "portal_ident",
+		Value:  sessionToken,
+		Secure: true,
 		// Otras configuraciones de cookie, como Path, MaxAge, etc.
 	})
 
@@ -139,7 +129,7 @@ func (s *HTTPServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-	cookie, err := r.Cookie("session_token")
+	cookie, err := r.Cookie("portal_ident")
 	if err != nil {
 		// El token de sesión no está presente o es inválido, redirigir al inicio de sesión
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -163,7 +153,12 @@ func (s *HTTPServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.MakeErrorMessage(w, "Error al generar respuesta JSON"+err.Error(), http.StatusInternalServerError)
 		} else {
-
+			http.SetCookie(w, &http.Cookie{
+				Name:     "portal_ident",
+				Value:    "",
+				SameSite: http.SameSiteNoneMode,
+				// Otras configuraciones de cookie, como Path, MaxAge, etc.
+			})
 			// Escribir la respuesta JSON en el cuerpo de la respuesta HTTP
 			w.Write(jsonResponse)
 		}
@@ -192,7 +187,7 @@ func (s *HTTPServer) userData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-	cookie, err := r.Cookie("session_token")
+	cookie, err := r.Cookie("portal_ident")
 	if err != nil {
 		// El token de sesión no está presente o es inválido, redirigir al inicio de sesión
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -218,6 +213,11 @@ func (s *HTTPServer) userData(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		if userID == userOnline.Hash {
+			http.SetCookie(w, &http.Cookie{
+				Name:  "portal_ident",
+				Value: sessionToken,
+				// Otras configuraciones de cookie, como Path, MaxAge, etc.
+			})
 			userData, err := s.PortalService.GetUserByAlias(userOnline.Alias)
 			if err == nil {
 				jsonResponse, err = json.Marshal(userData)
@@ -240,7 +240,7 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-	cookie, err := r.Cookie("session_token")
+	cookie, err := r.Cookie("portal_ident")
 
 	if r.Method != http.MethodPost {
 		s.MakeErrorMessage(w, "Método no permitido", http.StatusMethodNotAllowed)
@@ -269,7 +269,11 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userID == userOnline.Hash {
-
+		http.SetCookie(w, &http.Cookie{
+			Name:  "portal_ident",
+			Value: sessionToken,
+			// Otras configuraciones de cookie, como Path, MaxAge, etc.
+		})
 		// Leer el cuerpo de la solicitud
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -312,7 +316,7 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-	cookie, err := r.Cookie("session_token")
+	cookie, err := r.Cookie("portal_ident")
 
 	if r.Method != http.MethodPost {
 		s.MakeErrorMessage(w, "Método no permitido", http.StatusMethodNotAllowed)
@@ -341,7 +345,11 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userID == userOnline.Hash {
-
+		http.SetCookie(w, &http.Cookie{
+			Name:  "portal_ident",
+			Value: sessionToken,
+			// Otras configuraciones de cookie, como Path, MaxAge, etc.
+		})
 		// Leer el cuerpo de la solicitud
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
