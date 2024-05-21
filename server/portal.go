@@ -183,6 +183,40 @@ func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
+	alias := r.URL.Query().Get("alias")
+	if alias == "" {
+		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
+		return
+	}
+
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 0 {
+		page = 0
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	skip := int64(page * limit)
+
+	tips, err := s.PortalService.GetTipsByAliasWithPagination(alias, skip, int64(limit))
+	if err != nil {
+		http.Error(w, "Error fetching tips", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tips); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
+
 func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")

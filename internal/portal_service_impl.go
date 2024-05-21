@@ -127,3 +127,7 @@ func (s *PortalRetroGamerImpl) GetTipsWithSearch(search string, skip, limit int6
 func (s *PortalRetroGamerImpl) DeleteTip(id, alias string) error {
 	return s.PortalRepository.DeleteTipByIDandAuthor(id, alias)
 }
+
+func (s *PortalRetroGamerImpl) GetTipsByAliasWithPagination(alias string, skip, limit int64) ([]*entity.PostNew, error) {
+	return s.PortalRepository.GetTipsByAliasWithPagination(alias, skip, limit)
+}

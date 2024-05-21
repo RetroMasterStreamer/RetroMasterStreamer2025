@@ -67,6 +67,8 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/public/loadTips", s.loadTips)
 
+	http.HandleFunc("/public/loadTipsByPerfil", s.loadTipsPerfil)
+
 	http.HandleFunc("/public/search", s.loadTipsSearch)
 
 	fmt.Printf("Servidor escuchando en el puerto %s\n", port)
