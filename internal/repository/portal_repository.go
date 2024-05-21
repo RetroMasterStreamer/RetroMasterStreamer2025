@@ -195,7 +195,7 @@ func (r *PortalRepositoryMongo) DeleteTipByIDandAuthor(id, alias string) error {
 func (r *PortalRepositoryMongo) GetTipsByAliasWithPagination(alias string, skip, limit int64) ([]*entity.PostNew, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
 
-	filter := bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}
+	filter := bson.M{"author": bson.M{"$regex": alias, "$options": "i"}}
 	findOptions := options.Find()
 	findOptions.SetSkip(skip)
 	findOptions.SetLimit(limit)
