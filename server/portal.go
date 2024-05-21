@@ -331,3 +331,40 @@ func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func (s *HTTPServer) userInfo(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+		return
+	}
+
+	var user entity.User
+	if err := json.Unmarshal(body, &user); err != nil {
+		s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
+		return
+	}
+
+	userRef, err := s.PortalService.GetUserByAlias(user.Alias)
+	if err != nil {
+		userRef = &user
+	}
+
+	if userRef == nil {
+		userRef = &user
+	}
+
+	jsonResponse, err := json.Marshal(userRef)
+	if err != nil {
+		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(jsonResponse)
+
+}

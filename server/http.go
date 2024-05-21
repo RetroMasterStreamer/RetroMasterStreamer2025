@@ -55,6 +55,8 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/public/checkAlias", s.checkAlias)
 
+	http.HandleFunc("/public/userInfo", s.userInfo)
+
 	http.HandleFunc("/public/createUser", s.createUser)
 
 	http.HandleFunc("/public/saveTips", s.saveTips)
