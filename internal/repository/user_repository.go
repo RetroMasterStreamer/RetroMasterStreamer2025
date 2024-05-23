@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -36,8 +37,11 @@ type UserRepositoryMongo struct {
 func (r *UserRepositoryMongo) AuthenticateUser(alias, password string) (*entity.User, error) {
 	collection := r.client.Database("portalRG").Collection("user")
 
+	// Convertir el alias a minúsculas
+	lowerAlias := strings.ToLower(alias)
+
 	var user entity.User
-	err := collection.FindOne(context.Background(), bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}, "password": password}).Decode(&user)
+	err := collection.FindOne(context.Background(), bson.M{"alias": lowerAlias, "password": password}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +52,8 @@ func (r *UserRepositoryMongo) AuthenticateUser(alias, password string) (*entity.
 // AuthenticateUser autentica a un usuario utilizando su alias y contraseña.
 func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, online bool) (*entity.UserOnline, error) {
 	collection := r.client.Database("portalRG").Collection("userOnline")
+
+	alias = strings.ToLower(alias)
 
 	// Definir el filtro para encontrar el usuario
 	filter := bson.M{"alias": alias, "sessionToken": sessionToken, "hash": hash}
@@ -132,12 +138,13 @@ func (r *UserRepositoryMongo) GetUserByTextRefer(text string) (*entity.User, err
 // SaveUser guarda el contenido completo de un registro en la colección "user".
 func (r *UserRepositoryMongo) SaveUser(user *entity.User) error {
 	collection := r.client.Database("portalRG").Collection("user")
-
+	user.Alias = strings.ToLower(user.Alias)
 	// Verificar si el usuario ya existe en la base de datos
 	existingUser, _ := r.GetUserByAlias(user.Alias)
 
 	// Si el usuario existe, actualizamos su registro
 	if existingUser != nil {
+
 		filter := bson.M{"alias": bson.M{"$regex": user.Alias, "$options": "i"}}
 		update := bson.M{"$set": user}
 
