@@ -153,8 +153,8 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 
 	filter := bson.M{
 		"$or": []bson.M{
-			{"title": bson.M{"$regex": search, "$options": "i"}},
-			{"content": bson.M{"$regex": search, "$options": "i"}},
+			{"title": bson.M{"$regex": search, "$options": "imxs"}},
+			{"content": bson.M{"$regex": search, "$options": "imxs"}},
 		},
 	}
 
