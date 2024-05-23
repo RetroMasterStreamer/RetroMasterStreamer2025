@@ -81,6 +81,11 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if creds.Alias == "" || creds.Password == "" {
+		s.MakeErrorMessage(w, "Como que te falto ingresar algo", http.StatusUnauthorized)
+		return
+	}
+
 	// Autenticar usuario con las credenciales proporcionadas
 	user, err := s.PortalService.AuthenticateUser(creds.Alias, creds.Password)
 	if err != nil {
