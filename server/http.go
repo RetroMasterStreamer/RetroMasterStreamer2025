@@ -65,6 +65,8 @@ func (s *HTTPServer) Start(port string) error {
 
 	http.HandleFunc("/public/new", s.getTips)
 
+	http.HandleFunc("/public/shared", s.sharedTips)
+
 	http.HandleFunc("/public/loadTips", s.loadTips)
 
 	http.HandleFunc("/public/loadTipsByPerfil", s.loadTipsPerfil)

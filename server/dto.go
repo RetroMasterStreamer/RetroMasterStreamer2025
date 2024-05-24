@@ -34,3 +34,10 @@ type ResponseMessage struct {
 	Message string `json:"message"`
 	Code    int    `json:"code"`
 }
+
+type TipsShared struct {
+	Title    string
+	ID       string
+	URL      string
+	AvatarYT string
+}

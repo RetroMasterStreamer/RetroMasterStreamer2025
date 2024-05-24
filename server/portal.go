@@ -3,8 +3,10 @@ package server
 import (
 	"PortalCRG/internal/repository/entity"
 	"encoding/json"
+	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	// Para generar UUIDs únicos
 )
@@ -401,4 +403,45 @@ func (s *HTTPServer) userInfo(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jsonResponse)
 
+}
+
+func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	tip := s.PortalService.GetTipByID(id)
+	tips := TipsShared{}
+	if tip == nil {
+		tips = TipsShared{
+			Title:    "",
+			ID:       "",
+			URL:      "/",
+			AvatarYT: "",
+		}
+	} else {
+
+		author, _ := s.PortalService.GetUserByAlias(tip.Author)
+
+		// Define your tips data
+		tips = TipsShared{
+			Title:    tip.Title,
+			ID:       tip.ID,
+			URL:      tip.URL,
+			AvatarYT: author.AvatarYT,
+		}
+	}
+	// Define the path to the HTML file
+	htmlFilePath := filepath.Join("static", "browser", "shared.html")
+
+	// Parse the HTML file as a template
+	tmpl, err := template.ParseFiles(htmlFilePath)
+	if err != nil {
+		http.Error(w, "Unable to load template", http.StatusInternalServerError)
+		return
+	}
+
+	// Execute the template with the tips data and write to the response
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	err = tmpl.Execute(w, tips)
+	if err != nil {
+		http.Error(w, "Unable to render template", http.StatusInternalServerError)
+	}
 }
