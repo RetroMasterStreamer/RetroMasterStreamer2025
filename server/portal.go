@@ -431,7 +431,7 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Define the path to the HTML file
-	htmlFilePath := filepath.Join("static", "browser", "shared.html")
+	htmlFilePath := filepath.Join("static", "shared.html")
 
 	// Parse the HTML file as a template
 	tmpl, err := template.ParseFiles(htmlFilePath)
