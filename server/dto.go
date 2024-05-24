@@ -39,5 +39,6 @@ type TipsShared struct {
 	Title    string
 	ID       string
 	URL      string
+	Content  string
 	AvatarYT string
 }

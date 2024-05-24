@@ -414,6 +414,7 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 			Title:    "",
 			ID:       "",
 			URL:      "/",
+			Content:  "Portal Retro Gamer",
 			AvatarYT: "",
 		}
 	} else {
@@ -425,6 +426,7 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 			Title:    tip.Title,
 			ID:       tip.ID,
 			URL:      tip.URL,
+			Content:  tip.Content,
 			AvatarYT: author.AvatarYT,
 		}
 	}
