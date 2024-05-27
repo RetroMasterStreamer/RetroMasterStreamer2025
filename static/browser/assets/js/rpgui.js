@@ -226,7 +226,7 @@ RPGUI.on_load(function()
 });
 
 /**
-* This script add the dragging functionality to all elements with "rpgui-draggable" class.
+* This script add the dragging functionality to all elements with "" class.
 */
 
 
@@ -236,10 +236,10 @@ var _curr_dragged_point = null;
 var _dragged_z = 1000;
 
 // class name we consider as draggable
-var _draggable_class = "rpgui-draggable";
+var _draggable_class = "";
 
 // set element as draggable
-// note: this also add the "rpgui-draggable" css class to the element.
+// note: this also add the "" css class to the element.
 RPGUI.__create_funcs["draggable"] = function(element)
 {
 	// prevent forms of default dragging on this element
@@ -251,7 +251,7 @@ RPGUI.__create_funcs["draggable"] = function(element)
 	element.addEventListener('mousedown', mouseDown);
 };
 
-// init all draggable elements (objects with "rpgui-draggable" class)
+// init all draggable elements (objects with "" class)
 RPGUI.on_load(function()
 {
 	// init all draggable elements
