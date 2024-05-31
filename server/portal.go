@@ -163,24 +163,48 @@ func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-
-	body, err := ioutil.ReadAll(r.Body)
+	cookie, err := r.Cookie("portal_ident")
 	if err != nil {
-		s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+		// El token de sesión no está presente o es inválido, redirigir al inicio de sesión
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	// Definir estructura para datos de credenciales
+	// Verificar el token de sesión en el mapa de sesiones
+	sessionToken := cookie.Value
+	userID, ok := s.sessions[sessionToken]
 
-	// Decodificar el cuerpo JSON en la estructura de credenciales
-	var tips entity.PostNew
-	if err := json.Unmarshal(body, &tips); err != nil {
-		s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
-		return
+	response := ResponseOnline{}
+
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
+
+	if !ok || error != nil {
+		// El token de sesión no coincide con ninguna sesión activa, redirigir al inicio de sesión
+		response.Code = 401
+		response.Status = "GAME OVER"
 	}
 
-	s.PortalService.CreateTips(&tips)
+	if userOnline != nil && userID == userOnline.Hash {
 
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			s.MakeErrorMessage(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+			return
+		}
+
+		// Definir estructura para datos de credenciales
+
+		// Decodificar el cuerpo JSON en la estructura de credenciales
+		var tips entity.PostNew
+		if err := json.Unmarshal(body, &tips); err != nil {
+			s.MakeErrorMessage(w, "Formato de datos incorrecto", http.StatusBadRequest)
+			return
+		}
+
+		tips.Author = userOnline.Alias
+
+		s.PortalService.CreateTips(&tips)
+	}
 	return
 
 }
