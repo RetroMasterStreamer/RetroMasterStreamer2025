@@ -529,6 +529,9 @@ func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 			commentRetro.Date = comment.Date
 
 			tipRetro.Comments = append(tipRetro.Comments, commentRetro)
+
+			tipRetro.Date = comment.Date
+
 			err = s.PortalService.CreateTips(tipRetro)
 			if err != nil {
 				s.MakeErrorMessage(w, "Invalid request body", http.StatusBadRequest)
