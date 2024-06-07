@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	// Para generar UUIDs únicos
 )
 
@@ -172,7 +173,7 @@ func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 
 	response := ResponseOnline{}
 
@@ -354,7 +355,7 @@ func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 
 	response := ResponseOnline{}
 
@@ -469,5 +470,80 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.Execute(w, tips)
 	if err != nil {
 		http.Error(w, "Unable to render template", http.StatusInternalServerError)
+	}
+}
+
+func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+	cookie, err := r.Cookie("portal_ident")
+	if err != nil {
+		// El token de sesión no está presente o es inválido, redirigir al inicio de sesión
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Verificar el token de sesión en el mapa de sesiones
+	sessionToken := cookie.Value
+	userID, ok := s.sessionsInServer[sessionToken]
+
+	response := ResponseOnline{}
+
+	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
+
+	if !ok || error != nil {
+		// El token de sesión no coincide con ninguna sesión activa, redirigir al inicio de sesión
+		response.Code = 401
+		response.Status = "GAME OVER"
+		s.MakeErrorMessage(w, "Intente logearse otra vez", http.StatusMethodNotAllowed)
+	}
+
+	if userOnline != nil && userID == userOnline.Hash {
+
+		comment := CommentPortal{}
+
+		comment.Author = userOnline.Alias
+
+		if r.Method != http.MethodPost {
+			s.MakeErrorMessage(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
+			s.MakeErrorMessage(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if strings.Trim(comment.Comment, "") != "" {
+
+			tipRetro := s.PortalService.GetTipByID(comment.ID)
+
+			author, _ := s.PortalService.GetUserByAlias(comment.Author)
+
+			commentRetro := entity.CommentRetro{}
+			commentRetro.Author = comment.Author
+			commentRetro.Comment = comment.Comment
+			commentRetro.Avatar = author.AvatarYT
+			commentRetro.Date = comment.Date
+
+			tipRetro.Comments = append(tipRetro.Comments, commentRetro)
+			err = s.PortalService.CreateTips(tipRetro)
+			if err != nil {
+				s.MakeErrorMessage(w, "Invalid request body", http.StatusBadRequest)
+				return
+			}
+
+			jsonResponse, err := json.Marshal(tipRetro.Comments)
+			if err != nil {
+				s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
+				return
+			}
+			w.Write(jsonResponse)
+		} else {
+			s.MakeErrorMessage(w, "Sin comentarios", http.StatusBadRequest)
+		}
+
 	}
 }

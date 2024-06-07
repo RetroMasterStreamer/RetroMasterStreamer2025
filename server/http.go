@@ -12,8 +12,8 @@ import (
 
 // HTTPServer representa el servidor HTTP.
 type HTTPServer struct {
-	PortalService internal.PortalRetroGamerService
-	sessions      map[string]string
+	PortalService    internal.PortalRetroGamerService
+	sessionsInServer map[string]string
 }
 
 func (s *HTTPServer) hashAlias(alias string) string {
@@ -31,6 +31,9 @@ func NewHTTPServer(portalRetroGamerService internal.PortalRetroGamerService) *HT
 
 // Start inicia el servidor HTTP.
 func (s *HTTPServer) Start(port string) error {
+
+	s.sessionsInServer = make(map[string]string)
+
 	http.HandleFunc("/saludo", s.handleGreet)
 
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./static/browser/"))))
@@ -50,6 +53,8 @@ func (s *HTTPServer) Start(port string) error {
 	http.HandleFunc("/portal/saveTips", s.saveTips)
 
 	http.HandleFunc("/portal/deleteTips", s.deleteTip)
+
+	http.HandleFunc("/portal/comment", s.comment)
 
 	http.HandleFunc("/public/team", s.teams)
 

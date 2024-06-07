@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -61,7 +62,9 @@ func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, on
 	if online {
 
 		// Definir los cambios que se van a realizar
-		update := bson.M{"$set": bson.M{"online": online}}
+
+		access := time.Now().Format("2006-1-2 15:4:5")
+		update := bson.M{"$set": bson.M{"online": online, "access": access}}
 
 		// Configurar la opción upsert para crear un documento si no existe
 		options := options.Update().SetUpsert(true)
@@ -74,6 +77,7 @@ func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, on
 
 		// Después de actualizar, obtener el usuario actualizado
 		var user entity.UserOnline
+
 		err = collection.FindOne(context.Background(), filter).Decode(&user)
 		if err != nil {
 			return nil, err
@@ -81,7 +85,7 @@ func (r *UserRepositoryMongo) SetUserOnline(alias, sessionToken, hash string, on
 
 		return &user, nil
 	} else {
-		filter := bson.M{"alias": bson.M{"$regex": alias, "$options": "i"}}
+		filter := bson.M{"alias": alias, "sessionToken": sessionToken, "hash": hash, "online": true}
 		_, err := collection.DeleteMany(context.Background(), filter)
 		if err != nil {
 			return nil, err

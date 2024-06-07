@@ -27,7 +27,7 @@ func (s *HTTPServer) isLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 
 	response := ResponseOnline{}
 
@@ -106,18 +106,20 @@ func (s *HTTPServer) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.sessions = make(map[string]string)
 	// Almacenar el token de sesión en el mapa de sesiones
-	hash := s.hashAlias(response.User.Alias)
-	s.sessions[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
+
+	hash := s.hashAlias(response.User.Alias + r.RemoteAddr)
+	s.sessionsInServer[sessionToken] = hash // Aquí puedes almacenar el ID de usuario u otra información relacionada con la sesión
 
 	log.Println("Sesion TOKEN :" + sessionToken + "| User :" + creds.Alias + "| Hash :" + hash)
 
 	// Establecer una cookie con el token de sesión
 	http.SetCookie(w, &http.Cookie{
-		Name:   "portal_ident",
-		Value:  sessionToken,
-		Secure: true,
+		Name:     "portal_ident",
+		Value:    sessionToken,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		HttpOnly: true,
 		// Otras configuraciones de cookie, como Path, MaxAge, etc.
 	})
 
@@ -143,7 +145,7 @@ func (s *HTTPServer) handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 	if !ok {
 		s.MakeErrorMessage(w, "Error al generar respuesta JSON", http.StatusInternalServerError)
 		return
@@ -201,7 +203,7 @@ func (s *HTTPServer) userData(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 
 	userOnline, error := s.PortalService.GetStatusLogin(sessionToken, userID)
 
@@ -218,11 +220,14 @@ func (s *HTTPServer) userData(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		if userID == userOnline.Hash {
-			http.SetCookie(w, &http.Cookie{
-				Name:  "portal_ident",
-				Value: sessionToken,
-				// Otras configuraciones de cookie, como Path, MaxAge, etc.
-			})
+			/*
+				http.SetCookie(w, &http.Cookie{
+					Name:     "portal_ident",
+					Value:    sessionToken,
+					SameSite: http.SameSiteNoneMode,
+					// Otras configuraciones de cookie, como Path, MaxAge, etc.
+				})
+			*/
 			userData, err := s.PortalService.GetUserByAlias(userOnline.Alias)
 			if err == nil {
 				jsonResponse, err = json.Marshal(userData)
@@ -260,7 +265,7 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 
 	response := ResponseOnline{}
 	response.Code = 500
@@ -274,11 +279,14 @@ func (s *HTTPServer) savePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userID == userOnline.Hash {
-		http.SetCookie(w, &http.Cookie{
-			Name:  "portal_ident",
-			Value: sessionToken,
-			// Otras configuraciones de cookie, como Path, MaxAge, etc.
-		})
+		/*
+			http.SetCookie(w, &http.Cookie{
+				Name:     "portal_ident",
+				Value:    sessionToken,
+				SameSite: http.SameSiteNoneMode,
+				// Otras configuraciones de cookie, como Path, MaxAge, etc.
+			})
+		*/
 		// Leer el cuerpo de la solicitud
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -336,7 +344,7 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar el token de sesión en el mapa de sesiones
 	sessionToken := cookie.Value
-	userID, ok := s.sessions[sessionToken]
+	userID, ok := s.sessionsInServer[sessionToken]
 
 	response := ResponseOnline{}
 	response.Code = 500
@@ -350,11 +358,14 @@ func (s *HTTPServer) savePerfil(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userID == userOnline.Hash {
-		http.SetCookie(w, &http.Cookie{
-			Name:  "portal_ident",
-			Value: sessionToken,
-			// Otras configuraciones de cookie, como Path, MaxAge, etc.
-		})
+		/*
+			http.SetCookie(w, &http.Cookie{
+				Name:     "portal_ident",
+				Value:    sessionToken,
+				SameSite: http.SameSiteNoneMode,
+				// Otras configuraciones de cookie, como Path, MaxAge, etc.
+			})
+		*/
 		// Leer el cuerpo de la solicitud
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {

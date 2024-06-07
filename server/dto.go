@@ -14,14 +14,21 @@ type ChangePassword struct {
 }
 
 type NewUserRequest struct {
-	NewUser entity.NewUser `json:"new"`
-	RefUser entity.User    `json:"ref"`
-	Code    string         `json:"code"`
+	NewUser entity.RetroMasterUser `json:"new"`
+	RefUser entity.User            `json:"ref"`
+	Code    string                 `json:"code"`
 }
 
 type ResponseLogin struct {
 	User entity.User
 	Hash string
+}
+
+type CommentPortal struct {
+	ID      string `json:"tipsId"`
+	Comment string `json:"comment"`
+	Author  string `json:"author"`
+	Date    string `json:"date"`
 }
 
 type ResponseOnline struct {
