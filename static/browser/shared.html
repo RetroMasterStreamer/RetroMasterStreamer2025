@@ -41,16 +41,9 @@
 <body>
   <script>
     // Detectar si el dispositivo es móvil
-    function isMobileDevice() {
-        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
-    }
 
-    // Redirigir si es un dispositivo móvil
-    if (isMobileDevice()) {
-        window.location.href = "{{.URL}}";
-    } else {
-        window.location.href = "{{.URL}}";
-    }
+    window.location.href = "{{.URL}}";
+
 </script>
 </body>
 </html>
