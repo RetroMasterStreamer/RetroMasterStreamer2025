@@ -43,9 +43,9 @@ type ResponseMessage struct {
 }
 
 type TipsShared struct {
-	Title    string
-	ID       string
-	URL      string
-	Content  string
-	AvatarYT string
+	Title    string `json:"Title"`
+	ID       string `json:"ID"`
+	URL      string `json:"URL"`
+	Content  string `json:"Content"`
+	AvatarYT string `json:"AvatarYT"`
 }
