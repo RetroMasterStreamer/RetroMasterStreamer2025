@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 )
 
 func (s *HTTPServer) checkAlias(w http.ResponseWriter, r *http.Request) {
+	log.Println("checkAlias  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -50,6 +52,7 @@ func (s *HTTPServer) checkAlias(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) checkCode(w http.ResponseWriter, r *http.Request) {
+	log.Println("checkCode  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -91,6 +94,7 @@ func (s *HTTPServer) checkCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) teams(w http.ResponseWriter, r *http.Request) {
+	log.Println("teams  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -113,6 +117,7 @@ func (s *HTTPServer) teams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
+	log.Println("createUser  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -161,6 +166,7 @@ func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
+	log.Println("saveTips  ")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
@@ -211,6 +217,7 @@ func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
+	log.Println("loadTipsPerfil  ")
 	alias := r.URL.Query().Get("alias")
 	if alias == "" {
 		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
@@ -245,6 +252,7 @@ func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
+	log.Println("loadTips  ")
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
 
@@ -272,6 +280,7 @@ func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (s *HTTPServer) tips(w http.ResponseWriter, r *http.Request) {
+	log.Println("tips  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -294,6 +303,7 @@ func (s *HTTPServer) tips(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
+	log.Println("getTips  ")
 	id := r.URL.Query().Get("id")
 	if id == "" {
 		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
@@ -313,6 +323,7 @@ func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
+	log.Println("loadTipsSearch  ")
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
 	search := r.URL.Query().Get("search")
@@ -342,6 +353,7 @@ func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
+	log.Println("deleteTip  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -394,6 +406,7 @@ func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) userInfo(w http.ResponseWriter, r *http.Request) {
+	log.Println("userInfo  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -431,6 +444,7 @@ func (s *HTTPServer) userInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
+	log.Println("sharedTips  ")
 	id := r.URL.Query().Get("id")
 	tip := s.PortalService.GetTipByID(id)
 	tips := TipsShared{}
@@ -474,6 +488,7 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
+	log.Println("comment  ")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
