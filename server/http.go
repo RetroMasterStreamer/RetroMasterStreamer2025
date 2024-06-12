@@ -83,7 +83,6 @@ func (s *HTTPServer) Start(port string) error {
 }
 
 func (s *HTTPServer) handleGreet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Buscando index!!")
 	fmt.Fprintf(w, s.PortalService.Greet())
 }
 
