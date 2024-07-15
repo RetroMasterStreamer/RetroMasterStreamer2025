@@ -4,6 +4,9 @@ package internal
 import (
 	"PortalCRG/internal/repository"
 	"PortalCRG/internal/repository/entity"
+	"PortalCRG/internal/util"
+	"log"
+	"strings"
 )
 
 // PortalRetroGamerImpl es una implementación de UserService.
@@ -22,7 +25,35 @@ func NewUserService(userRepository repository.UserRepositoryMongo, portalReposit
 
 // Greet retorna un saludo simple.
 func (s *PortalRetroGamerImpl) Greet() string {
+	usuarios, _ := s.GetAllUsers()
+
+	for _, user := range usuarios {
+		for _, rrss := range user.RRSS {
+			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/") {
+				user.AvatarYT = util.GetAvatarByURL(rrss.URL)
+				s.SaveUser(*user)
+				break
+			}
+		}
+
+	}
 	return "Hello, world!"
+} // Greet retorna un saludo simple.
+func (s *PortalRetroGamerImpl) UpdateUserAvatar() string {
+	usuarios, _ := s.GetAllUsers()
+
+	for _, user := range usuarios {
+		for _, rrss := range user.RRSS {
+			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/") {
+				user.AvatarYT = util.GetAvatarByURL(rrss.URL)
+				s.SaveUser(*user)
+				log.Println(user.Alias + "..[OK]")
+				break
+			}
+		}
+
+	}
+	return "Ready"
 }
 
 // AuthenticateUser autentica a un usuario utilizando su alias y contraseña.

@@ -106,6 +106,8 @@ func (db *DataBase) Init() {
 		}
 	} else {
 		log.Println("Admin ya existe")
+		log.Println("Actualizando el Avatar de los usuarios")
+
 	}
 	/*
 		} else {

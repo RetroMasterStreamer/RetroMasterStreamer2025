@@ -28,9 +28,14 @@ func NewHTTPServer(portalRetroGamerService internal.PortalRetroGamerService) *HT
 		PortalService: portalRetroGamerService,
 	}
 }
+func (s *HTTPServer) InitService() {
+	s.PortalService.UpdateUserAvatar()
+}
 
 // Start inicia el servidor HTTP.
 func (s *HTTPServer) Start(port string) error {
+
+	s.InitService()
 
 	s.sessionsInServer = make(map[string]string)
 

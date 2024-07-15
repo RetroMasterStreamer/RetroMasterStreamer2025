@@ -6,6 +6,7 @@ import "PortalCRG/internal/repository/entity"
 // PortalRetroGamerService representa los casos de uso relacionados con los usuarios.
 type PortalRetroGamerService interface {
 	Greet() string
+	UpdateUserAvatar() string
 	AuthenticateUser(alias, password string) (*entity.User, error)
 	SetStatusLogin(alias, sessionToken, hash string, online bool) (bool, error)
 	GetStatusLogin(sessionToken, hash string) (*entity.UserOnline, error)
