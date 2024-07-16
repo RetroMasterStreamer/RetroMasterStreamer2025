@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"regexp"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -151,10 +152,13 @@ func (r *PortalRepositoryMongo) GetTipByAuthor(author string) (*entity.PostNew, 
 func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
 
+	// Escapar la cadena de búsqueda para usarla en la expresión regular
+	search = regexp.QuoteMeta(search)
+
 	filter := bson.M{
 		"$or": []bson.M{
-			{"title": bson.M{"$regex": search, "$options": "imxs"}},
-			{"content": bson.M{"$regex": search, "$options": "imxs"}},
+			{"title": bson.M{"$regex": search, "$options": "im"}},
+			{"content": bson.M{"$regex": search, "$options": "im"}},
 		},
 	}
 
