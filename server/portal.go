@@ -253,6 +253,22 @@ func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
 
 func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
 	log.Println("loadTips  ")
+
+	typeOfTips := []string{"tips", "youtube", "sitios"}
+
+	typeOfTipsHeader := r.Header.Get("typeOfTips")
+	if typeOfTipsHeader == "" {
+		log.Println("No 'typeOfTips' header provided")
+	} else {
+		log.Printf("Received typeOfTips header: %s\n", typeOfTipsHeader)
+
+		// Suponiendo que el array se envía como una cadena separada por comas: "videos,sitios,tips"
+		typeOfTips = strings.Split(typeOfTipsHeader, ",")
+		log.Printf("Parsed typeOfTips: %v\n", typeOfTips)
+
+		// Aquí puedes usar 'typeOfTips' como quieras (por ejemplo, para filtrar los tips)
+	}
+
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
 
@@ -268,7 +284,7 @@ func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
 
 	skip := int64(page * limit)
 
-	tips, err := s.PortalService.GetTipsWithPagination(skip, int64(limit))
+	tips, err := s.PortalService.GetTipsWithPagination(skip, int64(limit), typeOfTips)
 	if err != nil {
 		http.Error(w, "Error fetching tips", http.StatusInternalServerError)
 		return
@@ -323,7 +339,24 @@ func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
+
 	log.Println("loadTipsSearch  ")
+
+	typeOfTips := []string{"tips", "youtube", "sitios"}
+
+	typeOfTipsHeader := r.Header.Get("typeOfTips")
+	if typeOfTipsHeader == "" {
+		log.Println("No 'typeOfTips' header provided")
+	} else {
+		log.Printf("Received typeOfTips header: %s\n", typeOfTipsHeader)
+
+		// Suponiendo que el array se envía como una cadena separada por comas: "videos,sitios,tips"
+		typeOfTips = strings.Split(typeOfTipsHeader, ",")
+		log.Printf("Parsed typeOfTips: %v\n", typeOfTips)
+
+		// Aquí puedes usar 'typeOfTips' como quieras (por ejemplo, para filtrar los tips)
+	}
+
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
 	search := r.URL.Query().Get("search")
@@ -340,7 +373,11 @@ func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
 
 	skip := int64(page * limit)
 
-	tips, err := s.PortalService.GetTipsWithSearch(search, skip, int64(limit))
+	if contains(typeOfTips, "youtube") {
+		go s.PortalService.UpdateVideosTeams(search)
+	}
+
+	tips, err := s.PortalService.GetTipsWithSearch(search, skip, int64(limit), typeOfTips)
 	if err != nil {
 		s.MakeErrorMessage(w, "No existen resultados :(", http.StatusInternalServerError)
 		return
@@ -350,6 +387,15 @@ func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(tips); err != nil {
 		s.MakeErrorMessage(w, "No pude crear una respuesta", http.StatusInternalServerError)
 	}
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {

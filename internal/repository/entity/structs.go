@@ -37,14 +37,16 @@ type UserOnline struct {
 }
 
 type PostNew struct {
-	ID       string         `bson:"id" json:"id"`
-	Title    string         `bson:"title" json:"title"`
-	Content  string         `bson:"content" json:"content"`
-	URL      string         `bson:"url" json:"url"`
-	Type     string         `bson:"type" json:"type"`
-	Author   string         `bson:"author" json:"author"`
-	Date     string         `bson:"date" json:"date"`
-	Comments []CommentRetro `bson:"comments" json:"comments"`
+	ID         string         `bson:"id" json:"id"`
+	Title      string         `bson:"title" json:"title"`
+	Content    string         `bson:"content" json:"content"`
+	URL        string         `bson:"url" json:"url"`
+	Type       string         `bson:"type" json:"type"`
+	Author     string         `bson:"author" json:"author"`
+	Date       string         `bson:"date" json:"date"`
+	Comments   []CommentRetro `bson:"comments" json:"comments"`
+	MatchCount int            `json:"match"`
+	Hash       []string       `json:"hash"`
 }
 
 type CommentRetro struct {

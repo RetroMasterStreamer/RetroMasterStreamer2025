@@ -1,12 +1,15 @@
 // internal/usecase.go
 package internal
 
-import "PortalCRG/internal/repository/entity"
+import (
+	"PortalCRG/internal/repository/entity"
+)
 
 // PortalRetroGamerService representa los casos de uso relacionados con los usuarios.
 type PortalRetroGamerService interface {
 	Greet() string
 	UpdateUserAvatar() string
+	UpdateVideosTeams(search string) bool
 	AuthenticateUser(alias, password string) (*entity.User, error)
 	SetStatusLogin(alias, sessionToken, hash string, online bool) (bool, error)
 	GetStatusLogin(sessionToken, hash string) (*entity.UserOnline, error)
@@ -20,12 +23,13 @@ type PortalRetroGamerService interface {
 
 	CreateTips(tips *entity.PostNew) error
 	GetTipByID(id string) *entity.PostNew
+	GetTipByURL(url string) *entity.PostNew
 
-	GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error)
+	GetTipsWithPagination(skip, limit int64, typeOfTips []string) ([]*entity.PostNew, error)
 
 	GetTipsByAliasWithPagination(alias string, skip, limit int64) ([]*entity.PostNew, error)
 
-	GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error)
+	GetTipsWithSearch(search string, skip, limit int64, typeOfTips []string) ([]*entity.PostNew, error)
 	GetAllTips() ([]*entity.PostNew, error)
 	DeleteTip(alias, id string) error
 }

@@ -3,9 +3,13 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"regexp"
+	"sort"
+	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -71,7 +75,7 @@ func (r *PortalRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
 }
 
 // GetTipsWithPagination obtiene los tips con paginación
-func (r *PortalRepositoryMongo) GetTipsWithPagination(skip, limit int64) ([]*entity.PostNew, error) {
+func (r *PortalRepositoryMongo) GetTipsWithPagination(skip, limit int64, typeOfTips []string) ([]*entity.PostNew, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
 
 	findOptions := options.Find()
@@ -79,7 +83,11 @@ func (r *PortalRepositoryMongo) GetTipsWithPagination(skip, limit int64) ([]*ent
 	findOptions.SetLimit(limit)
 	findOptions.SetSort(bson.D{{"date", -1}})
 
-	cursor, err := collection.Find(context.Background(), bson.M{}, findOptions)
+	// Filtro para "type in []typeOfTips"
+	filter := bson.M{"type": bson.M{"$in": typeOfTips}}
+
+	// Ejecutar la consulta con el filtro
+	cursor, err := collection.Find(context.Background(), filter, findOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -148,20 +156,48 @@ func (r *PortalRepositoryMongo) GetTipByAuthor(author string) (*entity.PostNew, 
 	return &tip, nil
 }
 
-// GetTipsWithSearch obtiene los tips con paginación y búsqueda
-func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int64) ([]*entity.PostNew, error) {
+func (r *PortalRepositoryMongo) GetTipByURL(URL string) (*entity.PostNew, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
 
-	// Escapar la cadena de búsqueda para usarla en la expresión regular
-	search = regexp.QuoteMeta(search)
-
-	filter := bson.M{
-		"$or": []bson.M{
-			{"title": bson.M{"$regex": search, "$options": "im"}},
-			{"content": bson.M{"$regex": search, "$options": "im"}},
-		},
+	var tip entity.PostNew
+	err := collection.FindOne(context.Background(), bson.M{"url": URL}).Decode(&tip)
+	if err != nil {
+		return nil, err
 	}
 
+	return &tip, nil
+}
+
+// GetTipsWithSearch obtiene los tips con paginación y búsqueda
+func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int64, typeOfTips []string) ([]*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	// Dividir el texto de búsqueda en palabras separadas por espacios
+	searchWords := strings.Fields(search)
+
+	// Crear filtros $regex para cada palabra en los campos title y content
+	var orFilters []bson.M
+	for _, word := range searchWords {
+		escapedWord := regexp.QuoteMeta(word) // Escapar el texto para usarlo en la expresión regular
+		orFilters = append(orFilters, bson.M{"title": bson.M{"$regex": escapedWord, "$options": "im"}})
+		orFilters = append(orFilters, bson.M{"content": bson.M{"$regex": escapedWord, "$options": "im"}})
+
+	}
+	orFilters = append(orFilters, bson.M{"title": bson.M{"$regex": search, "$options": "im"}})
+	orFilters = append(orFilters, bson.M{"content": bson.M{"$regex": search, "$options": "im"}})
+
+	filter := bson.M{
+		"$and": []bson.M{
+			{
+				"$or": orFilters,
+			},
+			{
+				"type": bson.M{
+					"$in": typeOfTips,
+				},
+			},
+		},
+	}
 	findOptions := options.Find()
 	findOptions.SetSkip(skip)
 	findOptions.SetLimit(limit)
@@ -179,11 +215,35 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 		if err := cursor.Decode(&tip); err != nil {
 			return nil, err
 		}
-		tips = append(tips, &tip)
+		matchCount := 0
+		if strings.Contains(strings.ToLower(tip.Title), strings.ToLower(search)) || strings.Contains(strings.ToLower(tip.Content), strings.ToLower(search)) {
+			tip.Hash = append(tip.Hash, search)
+			tip.MatchCount = 1000
+			tips = append(tips, &tip)
+		} else {
+			for _, word := range searchWords {
+				if (strings.Contains(strings.ToLower(tip.Title), strings.ToLower(word)) ||
+					strings.Contains(strings.ToLower(tip.Content), strings.ToLower(word))) && len(word) > 2 {
+					matchCount++
+					tip.Hash = append(tip.Hash, word)
+				}
+			}
+			tip.MatchCount = matchCount
+
+			if matchCount > len(searchWords)/2 {
+				tips = append(tips, &tip)
+			}
+		}
+
 	}
 	if err := cursor.Err(); err != nil {
 		return nil, err
 	}
+
+	// Ordenar los resultados por la cantidad de coincidencias (matchCount)
+	sort.Slice(tips, func(i, j int) bool {
+		return tips[i].MatchCount > tips[j].MatchCount
+	})
 
 	return tips, nil
 }
@@ -224,4 +284,33 @@ func (r *PortalRepositoryMongo) GetTipsByAliasWithPagination(alias string, skip,
 	}
 
 	return tips, nil
+}
+
+func (r *PortalRepositoryMongo) DeleteTipsFromDate(dateString string) error {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	// Parsear la fecha en formato "dd-mm-yyyy"
+	parsedDate, err := time.Parse("02-01-2006", dateString)
+	if err != nil {
+		return fmt.Errorf("formato de fecha incorrecto: %v", err)
+	}
+
+	// Convertir la fecha a formato ISO para comparar en MongoDB
+	filterDate := parsedDate.Format("2006-01-02T15:04:05.000Z")
+
+	// Crear un filtro para eliminar los tips con fecha mayor o igual a la dada
+	filter := bson.M{
+		"date": bson.M{
+			"$gte": filterDate,
+		},
+	}
+
+	// Ejecutar la eliminación
+	result, err := collection.DeleteMany(context.Background(), filter)
+	if err != nil {
+		return fmt.Errorf("error al eliminar tips: %v", err)
+	}
+
+	fmt.Printf("Eliminados %d documentos con fecha mayor o igual a %s\n", result.DeletedCount, dateString)
+	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"PortalCRG/internal"
 	"PortalCRG/internal/repository"
+	"PortalCRG/internal/util"
 	"PortalCRG/server"
 	"cmp"
 	"fmt"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+
+	util.DeleteURLDuplicada()
+
 	// Inicializar repositorios
 	userRepository := repository.NewUserRepositoryMongo()
 	portalRepository := repository.NewPortalRepositoryMongo()
@@ -18,6 +22,8 @@ func main() {
 	userService := internal.NewUserService(*userRepository, *portalRepository)
 
 	userRepository.Init()
+
+	//userService.PortalRepository.DeleteTipsFromDate("11-09-2024")
 
 	// Inicializar servidor HTTP
 	httpServer := server.NewHTTPServer(userService)

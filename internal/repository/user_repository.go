@@ -3,12 +3,14 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"PortalCRG/internal/repository/entity"
@@ -194,12 +196,21 @@ func (r *UserRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
 func (r *UserRepositoryMongo) SaveTips(tip *entity.PostNew) error {
 	collection := r.client.Database("portalRG").Collection("tips")
 
-	// Verificar si el usuario ya existe en la base de datos
+	// Verificar si el tip ya existe en la base de datos por ID
 	existingTip, _ := r.GetTipsByID(tip.ID)
 
-	// Si el usuario existe, actualizamos su registro
+	// Verificar si el tip ya existe por URL para evitar duplicidad
+	existingTipByURL, err := r.GetTipsByURL(tip.URL) // Busca por la URL
+
+	if existingTipByURL != nil || err != nil {
+		// Si ya existe un tip con la misma URL, devolvemos un error para evitar duplicados
+		return fmt.Errorf("tip with URL %s already exists", tip.URL)
+	}
+
 	if existingTip != nil {
+		// Si el tip existe por ID, actualizamos su registro
 		filter := bson.M{"id": bson.M{"$regex": tip.ID, "$options": "i"}}
+
 		update := bson.M{"$set": tip}
 
 		_, err := collection.UpdateOne(context.Background(), filter, update)
@@ -207,14 +218,32 @@ func (r *UserRepositoryMongo) SaveTips(tip *entity.PostNew) error {
 			return err
 		}
 	} else {
-		// Si el usuario no existe, insertamos un nuevo registro
+		// Si el tip no existe, insertamos un nuevo registro
 		_, err := collection.InsertOne(context.Background(), tip)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
+}
+
+func (r *UserRepositoryMongo) GetTipsByURL(url string) (*entity.PostNew, error) {
+	collection := r.client.Database("portalRG").Collection("tips")
+
+	// Usar un filtro exacto para la URL
+	filter := bson.M{"url": url}
+
+	var tip entity.PostNew
+	err := collection.FindOne(context.Background(), filter).Decode(&tip)
+	if err != nil {
+		// Si no se encuentra un tip con esa URL, devolver nil sin error
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &tip, nil
 }
 
 func (r *UserRepositoryMongo) GetTipsByAuthor(alias string) (*entity.PostNew, error) {
