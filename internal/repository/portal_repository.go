@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -177,12 +176,14 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 
 	// Crear filtros $regex para cada palabra en los campos title y content
 	var orFilters []bson.M
-	for _, word := range searchWords {
-		escapedWord := regexp.QuoteMeta(word) // Escapar el texto para usarlo en la expresión regular
-		orFilters = append(orFilters, bson.M{"title": bson.M{"$regex": escapedWord, "$options": "im"}})
-		orFilters = append(orFilters, bson.M{"content": bson.M{"$regex": escapedWord, "$options": "im"}})
+	/*
+		for _, word := range searchWords {
+			escapedWord := regexp.QuoteMeta(word) // Escapar el texto para usarlo en la expresión regular
+			orFilters = append(orFilters, bson.M{"title": bson.M{"$regex": escapedWord, "$options": "im"}})
+			orFilters = append(orFilters, bson.M{"content": bson.M{"$regex": escapedWord, "$options": "im"}})
 
-	}
+		}
+	*/
 	orFilters = append(orFilters, bson.M{"title": bson.M{"$regex": search, "$options": "im"}})
 	orFilters = append(orFilters, bson.M{"content": bson.M{"$regex": search, "$options": "im"}})
 
@@ -208,22 +209,24 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 		return nil, err
 	}
 	defer cursor.Close(context.Background())
-
+	matchCount := 0
 	var tips []*entity.PostNew
 	for cursor.Next(context.Background()) {
 		var tip entity.PostNew
 		if err := cursor.Decode(&tip); err != nil {
 			return nil, err
 		}
-		matchCount := 0
+
 		if strings.Contains(strings.ToLower(tip.Title), strings.ToLower(search)) || strings.Contains(strings.ToLower(tip.Content), strings.ToLower(search)) {
 			tip.Hash = append(tip.Hash, search)
 			tip.MatchCount = 1000
 			tips = append(tips, &tip)
+			matchCount = 0
 		} else {
+			matchCount = 0
 			for _, word := range searchWords {
-				if (strings.Contains(strings.ToLower(tip.Title), strings.ToLower(word)) ||
-					strings.Contains(strings.ToLower(tip.Content), strings.ToLower(word))) && len(word) > 2 {
+				if strings.Contains(strings.ToLower(tip.Title), strings.ToLower(word)) ||
+					strings.Contains(strings.ToLower(tip.Content), strings.ToLower(word)) {
 					matchCount++
 					tip.Hash = append(tip.Hash, word)
 				}
@@ -232,6 +235,7 @@ func (r *PortalRepositoryMongo) GetTipsWithSearch(search string, skip, limit int
 
 			if matchCount > len(searchWords)/2 {
 				tips = append(tips, &tip)
+				matchCount = 0
 			}
 		}
 
