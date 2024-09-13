@@ -374,7 +374,7 @@ func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
 	skip := int64(page * limit)
 
 	if contains(typeOfTips, "youtube") {
-		go s.PortalService.UpdateVideosTeams(search)
+		s.PortalService.UpdateVideosTeams(search)
 	}
 
 	tips, err := s.PortalService.GetTipsWithSearch(search, skip, int64(limit), typeOfTips)
