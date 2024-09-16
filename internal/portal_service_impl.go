@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -205,15 +206,26 @@ func (s *PortalRetroGamerImpl) loadVideosFromYoutubeChannel(channelURL, alias, s
 func (s *PortalRetroGamerImpl) UpdateVideosTeams(search string) bool {
 	usuarios, _ := s.GetAllUsers()
 
+	var wg sync.WaitGroup
+
 	for _, user := range usuarios {
 		for _, rrss := range user.RRSS {
 			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/") {
 				fmt.Println("Buscando en el canal de " + user.Alias)
-				go s.loadVideosFromYoutubeChannel(rrss.URL, user.Alias, search)
+
+				wg.Add(1)
+
+				go func(url, alias, search string) {
+					defer wg.Done()
+					s.loadVideosFromYoutubeChannel(url, alias, search)
+				}(rrss.URL, user.Alias, search)
 			}
 		}
-
 	}
+
+	// Espera a que todas las gorutinas finalicen
+	wg.Wait()
+	fmt.Println("Fin busqueda en canales para " + search)
 	return true
 }
 
@@ -222,28 +234,22 @@ func (s *PortalRetroGamerImpl) findInYoutubeURL(urlChannelTeams string, find str
 	finalUrl := ""
 	search := "/search?query=" + url.QueryEscape(find)
 
-	// Verificar si la URL ya contiene "/videos"
 	if strings.Contains(urlChannelTeams, videosString) {
 		finalUrl = urlChannelTeams
 	} else if strings.Contains(urlChannelTeams, "/channel/") {
-		// Si es un canal con "channel/", agregar "/videos"
 		finalUrl = urlChannelTeams + videosString
 	} else if strings.Contains(urlChannelTeams, "/@") {
-		// Si es un usuario con "youtube.com/@", agregar "/videos"
-		// Remover cualquier parámetro adicional en la URL (p.ej., "?si=...")
 		if idx := strings.Index(urlChannelTeams, "?"); idx != -1 {
 			urlChannelTeams = urlChannelTeams[:idx]
 		}
 		finalUrl = urlChannelTeams + videosString
 	} else if strings.Contains(urlChannelTeams, "youtube.com/") {
-		// Si es un usuario sin "channel" o "@", convertirlo a formato "youtube.com/@"
 		parts := strings.Split(urlChannelTeams, "youtube.com/")
 		if len(parts) > 1 {
 			finalUrl = "https://www.youtube.com/@" + parts[1] + videosString
 		}
 	}
 
-	// Reemplazar "/videos" por el query de búsqueda
 	finalUrl = strings.ReplaceAll(finalUrl, videosString, search)
 
 	return finalUrl
