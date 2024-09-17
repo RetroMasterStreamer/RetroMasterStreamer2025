@@ -213,12 +213,15 @@ func (s *PortalRetroGamerImpl) UpdateVideosTeams(search string) bool {
 			if rrss.Type == "youtube" && strings.Contains(rrss.URL, "youtube.com/") {
 				fmt.Println("Buscando en el canal de " + user.Alias)
 
+				url := rrss.URL
+				alias := user.Alias
+
 				wg.Add(1)
 
 				go func(url, alias, search string) {
 					defer wg.Done()
 					s.loadVideosFromYoutubeChannel(url, alias, search)
-				}(rrss.URL, user.Alias, search)
+				}(url, alias, search)
 			}
 		}
 	}
