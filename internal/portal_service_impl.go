@@ -24,6 +24,11 @@ type PortalRetroGamerImpl struct {
 }
 
 // NewUserService crea una nueva instancia de UserServiceImpl.
+func NewDriveService() *DriveService {
+	return &DriveService{}
+}
+
+// NewUserService crea una nueva instancia de UserServiceImpl.
 func NewUserService(userRepository repository.UserRepositoryMongo, portalRepository repository.PortalRepositoryMongo) *PortalRetroGamerImpl {
 	return &PortalRetroGamerImpl{
 		UserRepository:   userRepository,
@@ -338,9 +343,9 @@ func (s *PortalRetroGamerImpl) GetAllTips() ([]*entity.PostNew, error) {
 	return users, err
 }
 
-func (s *PortalRetroGamerImpl) CreateTips(tip *entity.PostNew) error {
-	error := s.UserRepository.SaveTips(tip)
-	return error
+func (s *PortalRetroGamerImpl) CreateTips(tip *entity.PostNew) (error, string) {
+	id, error := s.UserRepository.SaveTips(tip)
+	return error, id
 }
 
 func (s *PortalRetroGamerImpl) GetTipByID(id string) *entity.PostNew {

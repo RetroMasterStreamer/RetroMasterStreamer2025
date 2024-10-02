@@ -193,20 +193,18 @@ func (r *UserRepositoryMongo) GetAllUsers() ([]*entity.User, error) {
 	return users, nil
 }
 
-func (r *UserRepositoryMongo) SaveTips(tip *entity.PostNew) error {
+func (r *UserRepositoryMongo) SaveTips(tip *entity.PostNew) (string, error) {
 	collection := r.client.Database("portalRG").Collection("tips")
-
-	// Verificar si el tip ya existe en la base de datos por ID
-	existingTip, _ := r.GetTipsByID(tip.ID)
 
 	// Verificar si el tip ya existe por URL para evitar duplicidad
 	existingTipByURL, err := r.GetTipsByURL(tip.URL) // Busca por la URL
 
-	if existingTipByURL != nil || err != nil {
+	if (existingTipByURL != nil || err != nil) && tip.Type != "download" {
 		// Si ya existe un tip con la misma URL, devolvemos un error para evitar duplicados
-		return fmt.Errorf("tip with URL %s already exists", tip.URL)
+		return tip.ID, fmt.Errorf("tip with URL %s already exists", tip.URL)
 	}
-
+	// Verificar si el tip ya existe en la base de datos por ID
+	existingTip, _ := r.GetTipsByID(tip.ID)
 	if existingTip != nil {
 		// Si el tip existe por ID, actualizamos su registro
 		filter := bson.M{"id": bson.M{"$regex": tip.ID, "$options": "i"}}
@@ -214,17 +212,21 @@ func (r *UserRepositoryMongo) SaveTips(tip *entity.PostNew) error {
 		update := bson.M{"$set": tip}
 
 		_, err := collection.UpdateOne(context.Background(), filter, update)
+
 		if err != nil {
-			return err
+			return "", err
 		}
+		// Retornar el ID del tip actualizado
+		return tip.ID, nil
 	} else {
 		// Si el tip no existe, insertamos un nuevo registro
 		_, err := collection.InsertOne(context.Background(), tip)
 		if err != nil {
-			return err
+			return "", err
 		}
+		// Retornar el ID del tip insertado
+		return tip.ID, nil
 	}
-	return nil
 }
 
 func (r *UserRepositoryMongo) GetTipsByURL(url string) (*entity.PostNew, error) {

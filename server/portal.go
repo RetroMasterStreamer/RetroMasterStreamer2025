@@ -3,6 +3,7 @@ package server
 import (
 	"PortalCRG/internal/repository/entity"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -210,9 +211,26 @@ func (s *HTTPServer) saveTips(w http.ResponseWriter, r *http.Request) {
 
 		tips.Author = userOnline.Alias
 
-		s.PortalService.CreateTips(&tips)
+		errorNew, id := s.PortalService.CreateTips(&tips)
+
+		if tips.Type == "download" {
+			tips.File.IdTips = id
+			erroInsertFile := s.DriveService.SaveFile(tips.File)
+
+			if erroInsertFile != nil {
+				log.Println("Eliminando tips dado que archivo esta malo")
+				s.PortalService.DeleteTip(userOnline.Alias, tips.ID)
+
+				s.MakeErrorMessage(w, "Error al subir archivos, estamos muy mal, avisale al administrador ayuda!!", http.StatusBadRequest)
+				return
+			}
+		}
+
+		if errorNew != nil {
+			fmt.Println("Atencion : " + errorNew.Error())
+		}
+
 	}
-	return
 
 }
 
@@ -249,6 +267,22 @@ func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(tips); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
+}
+
+func (s *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
+	fileID := r.URL.Query().Get("id")
+
+	file, err := s.DriveService.GetFileByID(fileID)
+	if err != nil {
+		http.Error(w, "Archivo no encontrado", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+file.Name)
+	w.Header().Set("Content-Type", file.Type)
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", file.Size))
+
+	w.Write([]byte(file.Content))
 }
 
 func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
@@ -445,6 +479,8 @@ func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
 		if err := s.PortalService.DeleteTip(req.ID, userOnline.Alias); err != nil {
 			s.MakeErrorMessage(w, "Failed to delete tip", http.StatusInternalServerError)
 			return
+		} else {
+			s.DriveService.DeleteFile(req.ID)
 		}
 
 		w.WriteHeader(http.StatusNoContent)
@@ -490,7 +526,7 @@ func (s *HTTPServer) userInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
-	log.Println("sharedTips  ")
+	log.Println("sharedTips !!! ")
 	id := r.URL.Query().Get("id")
 	tip := s.PortalService.GetTipByID(id)
 	tips := TipsShared{}
@@ -593,7 +629,7 @@ func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 
 			tipRetro.Date = comment.Date
 
-			err = s.PortalService.CreateTips(tipRetro)
+			err, _ := s.PortalService.CreateTips(tipRetro)
 			if err != nil {
 				s.MakeErrorMessage(w, "Invalid request body", http.StatusBadRequest)
 				return

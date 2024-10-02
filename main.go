@@ -20,13 +20,15 @@ func main() {
 
 	// Inicializar casos de uso
 	userService := internal.NewUserService(*userRepository, *portalRepository)
-
+	driveService := internal.NewDriveService()
+	driveService.Connect()
+	driveService.CreateTable()
 	userRepository.Init()
 
 	//userService.PortalRepository.DeleteTipsFromDate("11-09-2024")
 
 	// Inicializar servidor HTTP
-	httpServer := server.NewHTTPServer(userService)
+	httpServer := server.NewHTTPServer(userService, *driveService)
 
 	port := cmp.Or(os.Getenv("PORT"), "80")
 
