@@ -45,9 +45,9 @@ type PostNew struct {
 	Author     string         `bson:"author" json:"author"`
 	Date       string         `bson:"date" json:"date"`
 	Comments   []CommentRetro `bson:"comments" json:"comments"`
-	MatchCount int            `json:"match"`
-	Hash       []string       `json:"hash"`
-	File       *RetroFile     `json:"file,omitempty"`
+	MatchCount int            `bson:"-" json:"match"`
+	Hash       []string       `bson:"-" json:"hash"`
+	File       *RetroFile     `bson:"-" json:"file,omitempty"`
 }
 
 type CommentRetro struct {
@@ -59,9 +59,9 @@ type CommentRetro struct {
 }
 
 type RetroFile struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Size    int    `json:"size"`
-	Content string `json:"content"` // Contenido codificado en base64
-	IdTips  string `json:"idTips"`
+	Name    string `bson:"name" json:"name"`
+	Type    string `bson:"type" json:"type"`
+	Size    int    `bson:"size" json:"size"`
+	Content string `bson:"-" json:"content"` // Contenido codificado en base64
+	IdTips  string `bson:"idtips" json:"idTips"`
 }

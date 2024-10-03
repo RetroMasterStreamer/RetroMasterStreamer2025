@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net/http"
 	// Para generar UUIDs únicos
 )
@@ -101,5 +102,6 @@ func (s *HTTPServer) MakeErrorMessage(w http.ResponseWriter, message string, cod
 	error.Code = code
 	error.Message = message
 
+	log.Println("Error ")
 	http.Error(w, message, http.StatusInternalServerError)
 }

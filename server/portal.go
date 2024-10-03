@@ -238,6 +238,7 @@ func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
 	log.Println("loadTipsPerfil  ")
 	alias := r.URL.Query().Get("alias")
 	if alias == "" {
+		log.Println("Error ")
 		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
 		return
 	}
@@ -259,12 +260,14 @@ func (s *HTTPServer) loadTipsPerfil(w http.ResponseWriter, r *http.Request) {
 
 	tips, err := s.PortalService.GetTipsByAliasWithPagination(alias, skip, int64(limit))
 	if err != nil {
+		log.Println("Error ")
 		http.Error(w, "Error fetching tips", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tips); err != nil {
+		log.Println("Error ")
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
@@ -274,6 +277,7 @@ func (s *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
 
 	file, err := s.DriveService.GetFileByID(fileID)
 	if err != nil {
+		log.Println("Error ")
 		http.Error(w, "Archivo no encontrado", http.StatusNotFound)
 		return
 	}
@@ -320,12 +324,14 @@ func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
 
 	tips, err := s.PortalService.GetTipsWithPagination(skip, int64(limit), typeOfTips)
 	if err != nil {
+		log.Println("Error ")
 		http.Error(w, "Error fetching tips", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tips); err != nil {
+		log.Println("Error ")
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
@@ -356,6 +362,7 @@ func (s *HTTPServer) getTips(w http.ResponseWriter, r *http.Request) {
 	log.Println("getTips  ")
 	id := r.URL.Query().Get("id")
 	if id == "" {
+		log.Println("Error ")
 		http.Error(w, "ID is missing in parameters", http.StatusBadRequest)
 		return
 	}
@@ -557,6 +564,7 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 	// Parse the HTML file as a template
 	tmpl, err := template.ParseFiles(htmlFilePath)
 	if err != nil {
+		log.Println("Error ")
 		http.Error(w, "Unable to load template", http.StatusInternalServerError)
 		return
 	}
@@ -565,6 +573,7 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = tmpl.Execute(w, tips)
 	if err != nil {
+		log.Println("Error ")
 		http.Error(w, "Unable to render template", http.StatusInternalServerError)
 	}
 }
