@@ -667,7 +667,7 @@ func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 					if email != "" && !contains(enviados, email) {
 						enviados = append(enviados, email)
 						//Notificacion a quienes comentaron!!
-						go s.RetroEmailService.EnviarNotificacionComentarios(author.Alias, email, commentRetro, tipRetro, recomendaciones)
+						go s.RetroEmailService.EnviarNotificacionComentarios(comentario.Author, email, commentRetro, tipRetro, recomendaciones)
 					}
 				}
 			}
