@@ -661,6 +661,8 @@ func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 				tipRetro.Comments = append(tipRetro.Comments, commentRetro)
 				//Notificacion al AUTHOR DEL TIPS
 				go s.RetroEmailService.EnviarNotificacionComentarios(author.Alias, emailAuthor, commentRetro, tipRetro, recomendaciones)
+				//Notifica al administrador del sitio retromasterstreamers@gmail.com
+				go s.RetroEmailService.EnviarNotificacionComentarios("ADMINISTRADOR_AUTOMATICO", "retromasterstreamers@gmail.com", commentRetro, tipRetro, recomendaciones)
 				for _, comentario := range tipRetro.Comments {
 					notificar, _ := s.PortalService.GetUserByAlias(comentario.Author)
 					email := s.obtenerRRSS("email", notificar.RRSS)
