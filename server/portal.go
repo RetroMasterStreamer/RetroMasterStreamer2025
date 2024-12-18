@@ -635,7 +635,7 @@ func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 
 			tipRetro := s.PortalService.GetTipByID(comment.ID)
 
-			author, errAlias := s.PortalService.GetUserByAlias(tipRetro.Author)
+			author, errAlias := s.PortalService.GetUserByAlias(userOnline.Alias)
 
 			emailAuthor := s.obtenerRRSS("email", author.RRSS)
 
