@@ -292,7 +292,7 @@ func (s *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
 func (s *HTTPServer) loadTips(w http.ResponseWriter, r *http.Request) {
 	log.Println("loadTips  ")
 
-	typeOfTips := []string{"tips", "youtube", "sitios"}
+	typeOfTips := []string{"tips", "youtube", "url", "download"}
 
 	typeOfTipsHeader := r.Header.Get("typeOfTips")
 	if typeOfTipsHeader == "" {
@@ -428,15 +428,6 @@ func (s *HTTPServer) loadTipsSearch(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(tips); err != nil {
 		s.MakeErrorMessage(w, "No pude crear una respuesta", http.StatusInternalServerError)
 	}
-}
-
-func contains(arr []string, str string) bool {
-	for _, a := range arr {
-		if a == str {
-			return true
-		}
-	}
-	return false
 }
 
 func (s *HTTPServer) deleteTip(w http.ResponseWriter, r *http.Request) {
@@ -578,6 +569,24 @@ func (s *HTTPServer) sharedTips(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *HTTPServer) obtenerRRSS(typeRRSS string, autorRRSS []entity.RRSS) string {
+	for _, rrss := range autorRRSS {
+		if rrss.Type == typeRRSS && rrss.URL != "" {
+			return rrss.URL
+		}
+	}
+	return ""
+}
+
+func contains(slice []string, item string) bool {
+	for _, elem := range slice {
+		if elem == item {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 	log.Println("comment  ")
 
@@ -626,15 +635,42 @@ func (s *HTTPServer) comment(w http.ResponseWriter, r *http.Request) {
 
 			tipRetro := s.PortalService.GetTipByID(comment.ID)
 
-			author, _ := s.PortalService.GetUserByAlias(comment.Author)
+			author, errAlias := s.PortalService.GetUserByAlias(tipRetro.Author)
 
-			commentRetro := entity.CommentRetro{}
-			commentRetro.Author = comment.Author
-			commentRetro.Comment = comment.Comment
-			commentRetro.Avatar = author.AvatarYT
-			commentRetro.Date = comment.Date
+			emailAuthor := s.obtenerRRSS("email", author.RRSS)
 
-			tipRetro.Comments = append(tipRetro.Comments, commentRetro)
+			enviados := []string{}
+			recomendaciones := []entity.PostNew{}
+			typeOfTips := []string{"tips", "youtube", "url", "download"}
+			tips, errRecomendacion := s.PortalService.GetTipsWithPagination(1, int64(5), typeOfTips)
+
+			if errRecomendacion == nil {
+				for _, tip := range tips {
+					if tip.ID != tipRetro.ID {
+						recomendaciones = append(recomendaciones, *tip)
+					}
+				}
+			}
+			if errAlias == nil {
+				commentRetro := entity.CommentRetro{}
+				commentRetro.Author = comment.Author
+				commentRetro.Comment = comment.Comment
+				commentRetro.Avatar = author.AvatarYT
+				commentRetro.Date = comment.Date
+
+				tipRetro.Comments = append(tipRetro.Comments, commentRetro)
+				//Notificacion al AUTHOR DEL TIPS
+				go s.RetroEmailService.EnviarNotificacionComentarios(author.Alias, emailAuthor, commentRetro, tipRetro, recomendaciones)
+				for _, comentario := range tipRetro.Comments {
+					notificar, _ := s.PortalService.GetUserByAlias(comentario.Author)
+					email := s.obtenerRRSS("email", notificar.RRSS)
+					if email != "" && !contains(enviados, email) {
+						enviados = append(enviados, email)
+						//Notificacion a quienes comentaron!!
+						go s.RetroEmailService.EnviarNotificacionComentarios(author.Alias, email, commentRetro, tipRetro, recomendaciones)
+					}
+				}
+			}
 
 			tipRetro.Date = comment.Date
 

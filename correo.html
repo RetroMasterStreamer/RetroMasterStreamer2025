@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Lucida Console", "Courier New", monospace; /* Fuente común */
+            background-color: #f4f4f4; /* Fondo general */
+            color: #333333; /* Texto oscuro */
+            padding: 20px;
+            margin: 0;
+        }
+        a {
+            color: #0066cc; /* Color de enlace */
+            text-decoration: none;
+            font-weight: bold;
+        }
+        h1 {
+            color: #333333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .section {
+            background-color: #ffffff; /* Fondo blanco para las secciones */
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para dar profundidad */
+            border: 2px solid #ddd;
+        }
+        .video-container {
+            background-color: #e7f5ff; /* Fondo azul claro */
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 6px solid #0066cc; /* Borde izquierdo destacado */
+        }
+        .video-thumbnail {
+            width: 260px; /* Miniatura de imagen */
+            height: 260px; /* Miniatura de imagen */
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra en la imagen */
+        }
+        .comment {
+            background-color: #f0f8ff; /* Fondo gris claro */
+            padding: 15px;
+            border-left: 5px solid #ff9900; /* Borde izquierdo en naranja */
+            color: #555555;
+            font-style: italic;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            background-color: #ffcc00; /* Fondo amarillo */
+            color: #333333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .footer a {
+            color: #333333;
+            font-weight: normal;
+        }
+        hr {
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 128px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .cta {
+            background-color: #0066cc;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+        .cta:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="section">
+        <h1>¡Buenas {{AMIGO}}!</h1>
+        <p>Queremos contarte las últimas novedades en RetroMasters. 
+        </p>
+
+    <div class="section">
+        <p>Tienes nuevos comentarios :</p>
+        <div class="comment">
+            <strong>{{TIPS_TITULO}}</strong>
+            <p>
+            </p>
+            <a href="https://retromasters.up.railway.app/#/notice?id={{TIPS_ID}}" target="_blank">
+                {{COMENTARIO_TEXTO}}
+            </a><br>
+            <a href="https://retromasters.up.railway.app/#/about/@{{COMENTARIO_AUTHOR}}">@{{COMENTARIO_AUTHOR}}</a>
+        </div>
+    </div>
+
+    <h4>Ya viste esto??</h4>
+
+
+    {{HTML_RECOMENDACIONES}}
+
+
+    </div>
+
+    <div class="footer">
+        <p>Eso es todo, ¡saludos!</p>
+        <strong>Comunidad RetroMaster</strong><br>
+        <img src="https://retromasters.up.railway.app/assets/img/Titulo.png" alt="Retro Masters" class="logo">
+        <small>
+            Esta comunidad reúne a los generadores de contenido más retro gamers de la historia!! Aquí encontrarás
+            trucos, videos, gameplays de arcade, consolas clásicas y épicas, con jugadores apasionados por 
+            los beat'em up, carreras, naves, plataformas, ¡y más!
+        </small><br>
+        <p>
+            Si te interesa ser parte, entra a nuestro:
+            <a href="https://retromasters.up.railway.app/" target="_blank" class="cta">sitio web</a>.
+        </p>
+    </div>
+
+</body>
+</html>
