@@ -34,7 +34,7 @@ func main() {
 	}
 	userRepository.Init()
 
-	//userService.PortalRepository.DeleteTipsFromDate("11-09-2024")
+	//userService.PortalRepository.DeleteTipsFromDate("22-12-2024")
 
 	// Inicializar servidor HTTP
 	httpServer := server.NewHTTPServer(userService, *driveService, *retroEmailService)
