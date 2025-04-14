@@ -148,7 +148,9 @@ func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
 		newUser.Alias = createUserRequest.NewUser.Alias
 		newUser.Password = createUserRequest.NewUser.Password
 		newUser.UserRef = createUserRequest.RefUser.Alias
+		newUser.RRSS = createUserRequest.NewUser.RRSS
 		errCreate := s.PortalService.CreateUser(&newUser)
+
 		if errCreate != nil {
 			s.MakeErrorMessage(w, "Error al crear "+errCreate.Error(), http.StatusInternalServerError)
 			return
@@ -157,6 +159,13 @@ func (s *HTTPServer) createUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.MakeErrorMessage(w, "Error no puedo crear el dato", http.StatusInternalServerError)
 			return
+		}
+
+		//Enviar correo de Bienvenida, si es que ingreso correo
+		emailNuevo := s.obtenerRRSS("email", newUser.RRSS)
+
+		if emailNuevo != "" {
+			go s.RetroEmailService.EnviarNotificacionBienvenida(newUser.Alias, emailNuevo)
 		}
 		w.Write(jsonResponse)
 	} else {

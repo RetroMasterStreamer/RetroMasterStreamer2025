@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novedades RetroMasters</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            color: #fff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: linear-gradient(180deg, #1a1a3d, #2e2e5e);
+            border: 4px solid #ff00ff;
+            box-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .header {
+            background: url('https://via.placeholder.com/600x100/000/fff?text=RetroMasters+Arcade') no-repeat center;
+            background-size: cover;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px dashed #00ffff;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #ffeb3b;
+            text-shadow: 2px 2px #f44336;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .content {
+            padding: 20px;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #fff;
+        }
+        .content h4 {
+            color: #00ffff;
+            font-size: 20px;
+            text-shadow: 1px 1px #ff00ff;
+            margin: 20px 0 10px;
+        }
+        .comment {
+            background-color: #2e2e5e;
+            padding: 15px;
+            border-left: 5px solid #ffeb3b;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 5px #00ffff;
+        }
+        .comment p {
+            margin: 5px 0;
+        }
+        .comment a {
+            color: #ffeb3b;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .comment a:hover {
+            color: #00ffff;
+        }
+        .comment strong {
+            color: #ff00ff;
+        }
+        .footer {
+            background-color: #1a1a3d;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px dashed #00ffff;
+        }
+        .footer p {
+            font-size: 14px;
+            color: #b0bec5;
+            margin: 5px 0;
+        }
+        .footer strong {
+            color: #ffeb3b;
+            font-size: 16px;
+        }
+        .footer small {
+            font-size: 12px;
+            color: #78909c;
+            display: block;
+            margin: 10px 0;
+        }
+        .logo {
+            width: 128px;
+            margin: 10px 0;
+        }
+        .cta {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #ffeb3b;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        .cta:hover {
+            background-color: #ffeb3b;
+            color: #f44336;
+        }
+        hr {
+            border: 1px dashed #00ffff;
+            margin: 20px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .content p {
+                font-size: 14px;
+            }
+            .content h4 {
+                font-size: 18px;
+            }
+            .comment {
+                padding: 10px;
+            }
+            .cta {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Buenas {{AMIGO}}!</h1>
+        </div>
+        <div class="content">
+            <p>Queremos contarte las últimas novedades en RetroMasters.</p>
+
+            <p>Tienes nuevos comentarios :</p>
+            <div class="comment">
+                <strong>{{TIPS_TITULO}}</strong>
+                <p>
+                    <a href="https://retromasters.up.railway.app/#/notice?id={{TIPS_ID}}" target="_blank">
+                        {{COMENTARIO_TEXTO}}
+                    </a><br>
+                    <a href="https://retromasters.up.railway.app/#/about/@{{COMENTARIO_AUTHOR}}">@{{COMENTARIO_AUTHOR}}</a>
+                </p>
+            </div>
+
+            <h4>Ya viste esto??</h4>
+            {{HTML_RECOMENDACIONES}}
+
+            <hr>
+        </div>
+        <div class="footer">
+            <p>Eso es todo, ¡saludos!</p>
+            <strong>Comunidad RetroMaster</strong><br>
+            <img src="https://retromasters.up.railway.app/assets/img/Titulo.png" alt="Retro Masters" class="logo">
+            <small>
+                Esta comunidad reúne a los generadores de contenido más retro gamers de la historia!! Aquí encontrarás
+                trucos, videos, gameplays de arcade, consolas clásicas y épicas, con jugadores apasionados por 
+                los beat'em up, carreras, naves, plataformas, ¡y más!
+            </small><br>
+            <p>
+                Si te interesa ser parte, entra a nuestro:
+                <a href="https://retromasters.up.railway.app/" target="_blank" class="cta">sitio web</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

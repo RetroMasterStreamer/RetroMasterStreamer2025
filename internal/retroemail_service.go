@@ -76,8 +76,8 @@ func (r *RetroEmailService) EnviarNotificacionComentarios(alias, email string, c
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 
-	// Leer el archivo HTML desde la ruta "./correo.html"
-	body, err := ioutil.ReadFile("./correo.html")
+	// Leer el archivo HTML desde la ruta "./novedades.html"
+	body, err := ioutil.ReadFile("./novedades.html")
 	if err != nil {
 		log.Fatalf("Error al leer el archivo HTML: %v", err)
 	}
@@ -94,6 +94,71 @@ func (r *RetroEmailService) EnviarNotificacionComentarios(alias, email string, c
 
 	// Construcción del mensaje completo con encabezados personalizados
 	subject := "Novedades en RetroMaster, " + tips.Title
+	headers := map[string]string{
+		"MIME-Version":     "1.0",
+		"Content-Type":     "text/html; charset=\"UTF-8\"",
+		"Subject":          subject,
+		"From":             fmt.Sprintf("\"%s\" <%s>", fromName, from),
+		"To":               strings.Join(to, ", "),
+		"List-Unsubscribe": "<mailto:retromasterstreamers+nomas@gmail.com>",
+		"X-Priority":       "1",        // Alta prioridad
+		"Importance":       "High",     // Importancia alta
+		"Sensitivity":      "Personal", // Sensibilidad personal
+		"ARC-Seal":         "i=1; a=rsa-sha256; t=1734526822; cv=none; d=google.com; s=arc-20240605;",
+		"ARC-Authentication-Results": `i=1; mx.google.com;
+	dkim=pass header.i=@gmail.com header.s=20230601 header.b=JPcYLo+X;
+	spf=pass smtp.mailfrom=retromasterstreamers@gmail.com;
+	dmarc=pass header.from=gmail.com;`,
+		"Received-SPF": "pass (google.com: domain of retromasterstreamers@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+		"DKIM-Signature": `v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=gmail.com; s=20230601; t=1734526821; bh=fOj0A/B+hIsGKNJxcxdC7uRhI+nH0mlpcwwvnciGYRQ=;
+	b=JPcYLo+X80q/2L5NxlCEUuJEHIx3exB+owgUoE/0raK3K2euaLZbP+11n08yP5cZpR;`,
+		"Return-Path": "<retromasterstreamers@gmail.com>",
+	}
+	message := ""
+	for key, value := range headers {
+		message += fmt.Sprintf("%s: %s\r\n", key, value)
+	}
+	message += "\r\n" + bodyStr // Agregar el cuerpo del mensaje
+
+	// Autenticación
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// Enviar el email
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, []byte(message))
+	if err != nil {
+		log.Fatalf("Error al enviar el email: %v", err)
+	}
+
+	log.Println("¡Email enviado con éxito! %v", email)
+	r.send()
+}
+
+func (r *RetroEmailService) EnviarNotificacionBienvenida(alias, email string) {
+	// Configuración del remitente
+	fromName := "Retro Master" // Nombre del remitente
+	from := "retromasterstreamers@gmail.com"
+	password := os.Getenv("API_GMAIL")
+
+	// Destinatario
+	to := []string{email}
+
+	// Configuración del servidor SMTP
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Leer el archivo HTML desde la ruta "./novedades.html"
+	body, err := ioutil.ReadFile("./bienvenida.html")
+	if err != nil {
+		log.Fatalf("Error al leer el archivo HTML: %v", err)
+	}
+
+	bodyStr := string(body)
+
+	bodyStr = strings.ReplaceAll(bodyStr, "{{AMIGO}}", alias)
+
+	// Construcción del mensaje completo con encabezados personalizados
+	subject := "BIEVENIDO MASTER " + alias
 	headers := map[string]string{
 		"MIME-Version":     "1.0",
 		"Content-Type":     "text/html; charset=\"UTF-8\"",

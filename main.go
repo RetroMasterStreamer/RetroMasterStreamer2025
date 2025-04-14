@@ -2,6 +2,7 @@ package main
 
 import (
 	"PortalCRG/internal"
+	"PortalCRG/internal/games"
 	"PortalCRG/internal/repository"
 	"PortalCRG/internal/util"
 	"PortalCRG/server"
@@ -12,6 +13,14 @@ import (
 )
 
 func main() {
+
+	errGames := games.LoadGameList("list.json")
+
+	if errGames != nil {
+		log.Println("ATENCION No hay Juegos Cargados")
+	} else {
+		log.Println("Juegos Cargados!!")
+	}
 
 	util.DeleteURLDuplicada()
 
@@ -34,7 +43,7 @@ func main() {
 	}
 	userRepository.Init()
 
-	//userService.PortalRepository.DeleteTipsFromDate("22-12-2024")
+	//userService.PortalRepository.DeleteTipsFromDate("26-12-2024")
 
 	// Inicializar servidor HTTP
 	httpServer := server.NewHTTPServer(userService, *driveService, *retroEmailService)

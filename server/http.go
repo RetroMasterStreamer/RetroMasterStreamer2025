@@ -90,6 +90,7 @@ func (s *HTTPServer) Start(port string) error {
 	http.HandleFunc("/public/loadTipsByPerfil", s.loadTipsPerfil)
 
 	http.HandleFunc("/public/search", s.loadTipsSearch)
+	http.HandleFunc("/public/games/{emulator}/{game}", s.PlayTheGame)
 
 	fmt.Printf("Servidor escuchando en el puerto %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
