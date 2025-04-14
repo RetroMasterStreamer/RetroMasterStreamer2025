@@ -19,3 +19,5 @@ Poder Publicar contenido contenido (youtube, twitch, url, etc)
 
 
 ollama = r8_6ACqtw1RMtsRwCCAv6jel9jnaRU0IDf1LSjqx
+
+Pronto IA de consultas!!
